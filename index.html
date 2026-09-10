@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#1a1208" />
+  <title>电子木鱼 · 原作原型</title>
+  <style>
+    :root {
+      --bg: #1a1208;
+      --bg2: #2a1c0e;
+      --gold: #e8c56a;
+      --gold-dim: #b8943f;
+      --cream: #f5e6c8;
+      --wood: #8b5a2b;
+      --wood-dark: #5c3a1a;
+      --accent: #c45c26;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --skin-primary: #c4783a;
+      --skin-secondary: #8b4513;
+      --skin-highlight: #e8a85c;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      height: 100%;
+      background: #0d0a06;
+      font-family: "PingFang SC", "Noto Sans SC", "Microsoft YaHei", system-ui, sans-serif;
+      color: var(--cream);
+      overflow: hidden;
+      user-select: none;
+    }
+    #phone {
+      width: 390px;
+      height: 844px;
+      max-width: 100vw;
+      max-height: 100dvh;
+      margin: 0 auto;
+      background: linear-gradient(180deg, var(--bg) 0%, #0f0c08 100%);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 0 40px rgba(0,0,0,.6);
+    }
+    @media (max-width: 400px) {
+      #phone { width: 100vw; height: 100dvh; }
+    }
+    .topbar {
+      padding: 14px 16px 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .brand {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      color: var(--gold);
+    }
+    .brand small {
+      display: block;
+      font-size: 11px;
+      font-weight: 400;
+      color: rgba(245,230,200,.55);
+      letter-spacing: 0;
+      margin-top: 2px;
+    }
+    .merit-pill {
+      background: rgba(232,197,106,.12);
+      border: 1px solid rgba(232,197,106,.35);
+      border-radius: 20px;
+      padding: 6px 12px;
+      font-size: 13px;
+      color: var(--gold);
+      min-width: 110px;
+      text-align: center;
+    }
+    .merit-pill strong { font-size: 16px; }
+    .stage {
+      flex: 1;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 0;
+    }
+    .hint {
+      position: absolute;
+      top: 8px;
+      left: 0; right: 0;
+      text-align: center;
+      font-size: 12px;
+      color: rgba(245,230,200,.45);
+      pointer-events: none;
+    }
+    .tap-area {
+      width: 280px;
+      height: 280px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .tap-area.squash .instrument { transform: scale(0.92); }
+    .instrument {
+      width: 220px;
+      height: 220px;
+      transition: transform .08s ease-out;
+      position: relative;
+    }
+    /* 木鱼 — CSS 绘制 */
+    .muyu-body {
+      width: 180px; height: 140px;
+      margin: 40px auto 0;
+      background: radial-gradient(ellipse at 40% 35%, var(--skin-highlight), var(--skin-primary) 45%, var(--skin-secondary));
+      border-radius: 50% 50% 48% 48% / 55% 55% 45% 45%;
+      box-shadow:
+        inset 0 -18px 28px rgba(0,0,0,.35),
+        inset 0 12px 16px rgba(255,255,255,.15),
+        0 16px 28px rgba(0,0,0,.45);
+      position: relative;
+    }
+    .muyu-body::before {
+      content: "";
+      position: absolute;
+      left: 50%; top: 28%;
+      transform: translateX(-50%);
+      width: 42px; height: 28px;
+      background: #1a1008;
+      border-radius: 50%;
+      box-shadow: inset 0 2px 4px rgba(255,255,255,.08);
+    }
+    .muyu-body::after {
+      content: "";
+      position: absolute;
+      left: 18%; right: 18%; bottom: 18%;
+      height: 8px;
+      background: linear-gradient(90deg, transparent, rgba(0,0,0,.25), transparent);
+      border-radius: 4px;
+    }
+    .mallet {
+      position: absolute;
+      right: 8px; top: 20px;
+      width: 14px; height: 90px;
+      background: linear-gradient(90deg, #5c3a1a, #a07040, #5c3a1a);
+      border-radius: 4px;
+      transform-origin: 50% 90%;
+      transform: rotate(-25deg);
+      transition: transform .1s ease;
+      pointer-events: none;
+    }
+    .mallet::before {
+      content: "";
+      position: absolute;
+      top: -10px; left: -8px;
+      width: 30px; height: 30px;
+      background: radial-gradient(circle at 40% 40%, #d4a574, #8b5a2b);
+      border-radius: 50%;
+      box-shadow: 0 2px 4px rgba(0,0,0,.3);
+    }
+    .tap-area.squash .mallet { transform: rotate(15deg); }
+    /* 念珠 */
+    .beads-ring {
+      width: 200px; height: 200px;
+      margin: 10px auto;
+      position: relative;
+    }
+    .bead {
+      position: absolute;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, var(--skin-highlight), var(--skin-primary) 50%, var(--skin-secondary));
+      box-shadow: inset 0 -3px 6px rgba(0,0,0,.35), 0 2px 4px rgba(0,0,0,.3);
+      left: 50%; top: 50%;
+      margin: -14px;
+      transition: transform .15s ease;
+    }
+    .bead.active { transform: scale(1.25); filter: brightness(1.25); }
+    .bead-center {
+      position: absolute;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #f0d78c, var(--gold-dim));
+      box-shadow: 0 0 20px rgba(232,197,106,.4);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; color: #3a2a10; font-weight: 700;
+    }
+    /* 颂钵 */
+    .bowl {
+      width: 200px; height: 120px;
+      margin: 50px auto 0;
+      background: linear-gradient(180deg, var(--skin-highlight) 0%, var(--skin-primary) 40%, var(--skin-secondary) 100%);
+      border-radius: 50% 50% 48% 48% / 30% 30% 70% 70%;
+      box-shadow:
+        inset 0 20px 30px rgba(255,255,255,.2),
+        inset 0 -10px 20px rgba(0,0,0,.4),
+        0 20px 30px rgba(0,0,0,.4);
+      position: relative;
+    }
+    .bowl::before {
+      content: "";
+      position: absolute;
+      left: 12%; right: 12%; top: 8%;
+      height: 28%;
+      background: linear-gradient(180deg, rgba(255,255,255,.35), transparent);
+      border-radius: 50%;
+    }
+    .bowl-rim {
+      position: absolute;
+      left: -4%; right: -4%; top: -6%;
+      height: 22%;
+      border: 3px solid rgba(0,0,0,.25);
+      border-radius: 50%;
+      box-shadow: 0 2px 0 rgba(255,255,255,.15);
+    }
+    .ripple {
+      position: absolute;
+      left: 50%; top: 40%;
+      width: 40px; height: 20px;
+      margin: -10px -20px;
+      border: 2px solid rgba(232,197,106,.6);
+      border-radius: 50%;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .ripple.play {
+      animation: rippleOut .7s ease-out forwards;
+    }
+    @keyframes rippleOut {
+      to { transform: scale(4); opacity: 0; }
+    }
+    .float-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 5;
+    }
+    .float-txt {
+      position: absolute;
+      left: 50%;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--gold);
+      text-shadow: 0 2px 8px rgba(0,0,0,.5);
+      animation: floatUp 1s ease-out forwards;
+      white-space: nowrap;
+    }
+    @keyframes floatUp {
+      0% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+      100% { opacity: 0; transform: translate(-50%, -80px) scale(1.15); }
+    }
+    .toolbar {
+      padding: 8px 16px 4px;
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn {
+      appearance: none;
+      border: 1px solid rgba(232,197,106,.35);
+      background: rgba(232,197,106,.08);
+      color: var(--cream);
+      border-radius: 12px;
+      padding: 8px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background .15s, transform .1s;
+    }
+    .btn:active { transform: scale(0.96); }
+    .btn.primary {
+      background: linear-gradient(180deg, #d4a84b, #a07828);
+      border-color: #e8c56a;
+      color: #2a1c08;
+      font-weight: 600;
+    }
+    .btn:disabled { opacity: .45; cursor: default; }
+    .status-line {
+      text-align: center;
+      font-size: 11px;
+      color: rgba(245,230,200,.5);
+      padding: 2px 12px 6px;
+      min-height: 20px;
+      flex-shrink: 0;
+    }
+    .status-line.on { color: #7dcea0; }
+    .tabs {
+      display: flex;
+      border-top: 1px solid rgba(232,197,106,.2);
+      background: rgba(0,0,0,.35);
+      padding-bottom: var(--safe-bottom);
+      flex-shrink: 0;
+    }
+    .tab {
+      flex: 1;
+      padding: 12px 4px 14px;
+      text-align: center;
+      font-size: 13px;
+      color: rgba(245,230,200,.5);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      position: relative;
+    }
+    .tab.active {
+      color: var(--gold);
+      font-weight: 600;
+    }
+    .tab.active::after {
+      content: "";
+      position: absolute;
+      bottom: 6px; left: 50%;
+      transform: translateX(-50%);
+      width: 24px; height: 3px;
+      background: var(--gold);
+      border-radius: 2px;
+    }
+    .tab .ico { display: block; font-size: 20px; margin-bottom: 2px; }
+    /* 皮肤面板 / 广告遮罩 */
+    .sheet {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,.72);
+      z-index: 20;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .sheet.show { display: flex; }
+    .sheet-card {
+      width: 100%;
+      background: linear-gradient(180deg, #2a1c0e, #1a1208);
+      border-radius: 20px 20px 0 0;
+      padding: 20px 16px calc(20px + var(--safe-bottom));
+      border-top: 1px solid rgba(232,197,106,.3);
+    }
+    .sheet-card h3 {
+      font-size: 16px;
+      color: var(--gold);
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    .skin-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .skin-opt {
+      border: 2px solid transparent;
+      border-radius: 14px;
+      padding: 10px 6px;
+      text-align: center;
+      background: rgba(255,255,255,.04);
+      cursor: pointer;
+      font-size: 12px;
+      color: var(--cream);
+    }
+    .skin-opt.selected { border-color: var(--gold); }
+    .skin-opt.locked { opacity: .55; }
+    .skin-swatch {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      margin: 0 auto 6px;
+      box-shadow: inset 0 -4px 8px rgba(0,0,0,.3);
+    }
+    .ad-panel {
+      text-align: center;
+      padding: 24px 16px;
+    }
+    .ad-panel .ad-box {
+      width: 100%;
+      height: 160px;
+      background: linear-gradient(135deg, #3a2a18, #1a1208);
+      border: 1px dashed rgba(232,197,106,.4);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+      color: rgba(245,230,200,.7);
+      font-size: 14px;
+    }
+    .ad-panel .ad-box .spinner {
+      width: 28px; height: 28px;
+      border: 3px solid rgba(232,197,106,.25);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 10px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .panel-hidden { display: none !important; }
+    .mode-panel { width: 100%; display: flex; flex-direction: column; align-items: center; }
+  </style>
+</head>
+<body>
+  <div id="phone">
+    <header class="topbar">
+      <div class="brand">电子木鱼<small>原创玩具原型 · 非商业</small></div>
+      <div class="merit-pill">功德 <strong id="meritTotal">0</strong></div>
+    </header>
+
+    <main class="stage">
+      <div class="hint" id="modeHint">轻点木鱼 · 积攒功德</div>
+      <div class="float-layer" id="floatLayer"></div>
+
+      <!-- 木鱼 -->
+      <div class="mode-panel" id="panel-muyu" data-mode="muyu">
+        <div class="tap-area" id="tap-muyu" role="button" aria-label="敲木鱼">
+          <div class="instrument">
+            <div class="mallet"></div>
+            <div class="muyu-body"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 念珠 -->
+      <div class="mode-panel panel-hidden" id="panel-beads" data-mode="beads">
+        <div class="tap-area" id="tap-beads" role="button" aria-label="拨念珠">
+          <div class="instrument beads-ring" id="beadsRing">
+            <div class="bead-center">念</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 颂钵 -->
+      <div class="mode-panel panel-hidden" id="panel-bowl" data-mode="bowl">
+        <div class="tap-area" id="tap-bowl" role="button" aria-label="敲颂钵">
+          <div class="instrument">
+            <div class="bowl"><div class="bowl-rim"></div><div class="ripple" id="bowlRipple"></div></div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <div class="toolbar">
+      <button class="btn" type="button" id="btnSkin">换皮肤</button>
+      <button class="btn primary" type="button" id="btnAdAuto">看广告解锁 · 自动敲</button>
+      <button class="btn" type="button" id="btnAdSkin">看广告解锁 · 皮肤</button>
+    </div>
+    <div class="status-line" id="statusLine">本地演示 · 无真实广告</div>
+
+    <nav class="tabs">
+      <button class="tab active" type="button" data-tab="muyu"><span class="ico">🪵</span>木鱼</button>
+      <button class="tab" type="button" data-tab="beads"><span class="ico">📿</span>念珠</button>
+      <button class="tab" type="button" data-tab="bowl"><span class="ico">🔔</span>颂钵</button>
+    </nav>
+
+    <!-- 皮肤选择 -->
+    <div class="sheet" id="skinSheet">
+      <div class="sheet-card">
+        <h3>选择皮肤</h3>
+        <div class="skin-grid" id="skinGrid"></div>
+        <button class="btn" type="button" id="closeSkin" style="width:100%">关闭</button>
+      </div>
+    </div>
+
+    <!-- 激励视频 Mock -->
+    <div class="sheet" id="adSheet">
+      <div class="sheet-card ad-panel">
+        <h3 id="adTitle">激励视频（模拟）</h3>
+        <div class="ad-box" id="adBox">
+          <div class="spinner" id="adSpinner"></div>
+          <div id="adMsg">广告播放中…</div>
+        </div>
+        <button class="btn primary" type="button" id="adClose" disabled style="width:100%">请稍候</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+(function () {
+  "use strict";
+
+  const STORAGE_KEY = "dianzi-muyu-v1";
+  const AUTO_MS = 5 * 60 * 1000;
+  const AD_MS = 1500;
+
+  const SKINS = [
+    { id: "amber", name: "琥珀木", primary: "#c4783a", secondary: "#8b4513", highlight: "#e8a85c", free: true },
+    { id: "jade", name: "青玉", primary: "#3d8b6e", secondary: "#1e4d3a", highlight: "#7dcea0", free: true },
+    { id: "inkgold", name: "墨金", primary: "#4a3f2a", secondary: "#1a1510", highlight: "#d4af37", free: false },
+  ];
+
+  const FLOAT_TEXTS = {
+    muyu: ["功德+1", "善哉", "阿弥陀佛", "心静"],
+    beads: ["功德+1", "念一句", "清净", "回向"],
+    bowl: ["功德+1", "嗡…", "共鸣", "安住"],
+  };
+
+  const HINTS = {
+    muyu: "轻点木鱼 · 积攒功德",
+    beads: "轻点拨珠 · 一念一功",
+    bowl: "轻点颂钵 · 听声入定",
+  };
+
+  /** @type {{ total: number, muyu: number, beads: number, bowl: number, skin: string, unlockedSkins: string[], autoUntil: number }} */
+  let state = load();
+
+  let mode = "muyu";
+  let audioCtx = null;
+  let autoTimer = null;
+  let autoTick = null;
+  let beadIndex = 0;
+  let pendingAdReward = null; // 'auto' | 'skin'
+
+  // —— Persistence ——
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const o = JSON.parse(raw);
+        return {
+          total: o.total || 0,
+          muyu: o.muyu || 0,
+          beads: o.beads || 0,
+          bowl: o.bowl || 0,
+          skin: o.skin || "amber",
+          unlockedSkins: Array.isArray(o.unlockedSkins) ? o.unlockedSkins : ["amber", "jade"],
+          autoUntil: o.autoUntil || 0,
+        };
+      }
+    } catch (_) {}
+    return { total: 0, muyu: 0, beads: 0, bowl: 0, skin: "amber", unlockedSkins: ["amber", "jade"], autoUntil: 0 };
+  }
+  function save() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  // —— Audio (Web Audio beeps, no assets) ——
+  function ensureAudio() {
+    if (!audioCtx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) audioCtx = new AC();
+    }
+    if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+  }
+
+  function playTone(kind) {
+    ensureAudio();
+    if (!audioCtx) return;
+    const t0 = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    if (kind === "muyu") {
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(180, t0);
+      osc.frequency.exponentialRampToValueAtTime(90, t0 + 0.12);
+      gain.gain.setValueAtTime(0.35, t0);
+      gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.18);
+      osc.start(t0);
+      osc.stop(t0 + 0.2);
+    } else if (kind === "beads") {
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(520 + beadIndex * 12, t0);
+      gain.gain.setValueAtTime(0.18, t0);
+      gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.08);
+      osc.start(t0);
+      osc.stop(t0 + 0.09);
+    } else {
+      // bowl — soft bellish
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(440, t0);
+      osc.frequency.exponentialRampToValueAtTime(220, t0 + 0.8);
+      gain.gain.setValueAtTime(0.28, t0);
+      gain.gain.exponentialRampToValueAtTime(0.001, t0 + 1.0);
+      osc.start(t0);
+      osc.stop(t0 + 1.05);
+      // harmonic
+      const osc2 = audioCtx.createOscillator();
+      const g2 = audioCtx.createGain();
+      osc2.type = "sine";
+      osc2.frequency.setValueAtTime(660, t0);
+      osc2.connect(g2);
+      g2.connect(audioCtx.destination);
+      g2.gain.setValueAtTime(0.12, t0);
+      g2.gain.exponentialRampToValueAtTime(0.001, t0 + 0.7);
+      osc2.start(t0);
+      osc2.stop(t0 + 0.75);
+    }
+  }
+
+  // —— UI helpers ——
+  function applySkin(id) {
+    const s = SKINS.find((x) => x.id === id) || SKINS[0];
+    state.skin = s.id;
+    document.documentElement.style.setProperty("--skin-primary", s.primary);
+    document.documentElement.style.setProperty("--skin-secondary", s.secondary);
+    document.documentElement.style.setProperty("--skin-highlight", s.highlight);
+    save();
+    renderSkinGrid();
+  }
+
+  function updateMerit() {
+    document.getElementById("meritTotal").textContent = String(state.total);
+  }
+
+  function floatText(modeKey) {
+    const list = FLOAT_TEXTS[modeKey] || FLOAT_TEXTS.muyu;
+    const txt = list[Math.floor(Math.random() * list.length)];
+    const el = document.createElement("div");
+    el.className = "float-txt";
+    el.textContent = txt;
+    const layer = document.getElementById("floatLayer");
+    const x = 30 + Math.random() * 40;
+    el.style.left = x + "%";
+    el.style.top = "42%";
+    layer.appendChild(el);
+    setTimeout(() => el.remove(), 1000);
+  }
+
+  function buildBeads() {
+    const ring = document.getElementById("beadsRing");
+    ring.querySelectorAll(".bead").forEach((b) => b.remove());
+    const n = 12;
+    for (let i = 0; i < n; i++) {
+      const bead = document.createElement("div");
+      bead.className = "bead";
+      bead.dataset.i = String(i);
+      const ang = (i / n) * Math.PI * 2 - Math.PI / 2;
+      const r = 78;
+      bead.style.transform = `translate(${Math.cos(ang) * r}px, ${Math.sin(ang) * r}px)`;
+      ring.appendChild(bead);
+    }
+  }
+
+  function highlightBead() {
+    const beads = document.querySelectorAll(".bead");
+    beads.forEach((b) => b.classList.remove("active"));
+    const cur = beads[beadIndex % beads.length];
+    if (cur) {
+      cur.classList.add("active");
+      // re-apply translate with scale via style
+      const i = beadIndex % beads.length;
+      const ang = (i / beads.length) * Math.PI * 2 - Math.PI / 2;
+      const r = 78;
+      cur.style.transform = `translate(${Math.cos(ang) * r}px, ${Math.sin(ang) * r}px) scale(1.25)`;
+    }
+    // reset previous transforms
+    beads.forEach((b, idx) => {
+      if (idx === beadIndex % beads.length) return;
+      const ang = (idx / beads.length) * Math.PI * 2 - Math.PI / 2;
+      const r = 78;
+      b.style.transform = `translate(${Math.cos(ang) * r}px, ${Math.sin(ang) * r}px)`;
+    });
+  }
+
+  function doTap(fromAuto) {
+    ensureAudio();
+    state.total += 1;
+    state[mode] = (state[mode] || 0) + 1;
+    save();
+    updateMerit();
+    floatText(mode);
+    playTone(mode);
+
+    const area = document.getElementById(
+      mode === "muyu" ? "tap-muyu" : mode === "beads" ? "tap-beads" : "tap-bowl"
+    );
+    if (area) {
+      area.classList.add("squash");
+      setTimeout(() => area.classList.remove("squash"), 100);
+    }
+
+    if (mode === "beads") {
+      beadIndex = (beadIndex + 1) % 12;
+      highlightBead();
+    }
+    if (mode === "bowl") {
+      const rip = document.getElementById("bowlRipple");
+      rip.classList.remove("play");
+      void rip.offsetWidth;
+      rip.classList.add("play");
+    }
+  }
+
+  function setMode(next) {
+    mode = next;
+    document.querySelectorAll(".tab").forEach((t) => {
+      t.classList.toggle("active", t.dataset.tab === next);
+    });
+    document.getElementById("panel-muyu").classList.toggle("panel-hidden", next !== "muyu");
+    document.getElementById("panel-beads").classList.toggle("panel-hidden", next !== "beads");
+    document.getElementById("panel-bowl").classList.toggle("panel-hidden", next !== "bowl");
+    document.getElementById("modeHint").textContent = HINTS[next];
+  }
+
+  // —— Auto tap ——
+  function autoRemaining() {
+    return Math.max(0, state.autoUntil - Date.now());
+  }
+
+  function updateAutoStatus() {
+    const line = document.getElementById("statusLine");
+    const left = autoRemaining();
+    if (left > 0) {
+      const sec = Math.ceil(left / 1000);
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      line.textContent = `自动敲击中 · 剩余 ${m}:${String(s).padStart(2, "0")}`;
+      line.classList.add("on");
+      document.getElementById("btnAdAuto").disabled = true;
+    } else {
+      line.textContent = "本地演示 · 无真实广告 · 数据存 localStorage";
+      line.classList.remove("on");
+      document.getElementById("btnAdAuto").disabled = false;
+      if (autoTick) {
+        clearInterval(autoTick);
+        autoTick = null;
+      }
+      if (autoTimer) {
+        clearInterval(autoTimer);
+        autoTimer = null;
+      }
+    }
+  }
+
+  function startAutoIfNeeded() {
+    if (autoRemaining() <= 0) {
+      updateAutoStatus();
+      return;
+    }
+    if (!autoTimer) {
+      autoTimer = setInterval(() => doTap(true), 550);
+    }
+    if (!autoTick) {
+      autoTick = setInterval(updateAutoStatus, 500);
+    }
+    updateAutoStatus();
+  }
+
+  function grantAuto() {
+    state.autoUntil = Date.now() + AUTO_MS;
+    save();
+    startAutoIfNeeded();
+  }
+
+  function grantSkin() {
+    const locked = SKINS.find((s) => !s.free && !state.unlockedSkins.includes(s.id));
+    if (locked) {
+      if (!state.unlockedSkins.includes(locked.id)) {
+        state.unlockedSkins.push(locked.id);
+        save();
+      }
+      applySkin(locked.id);
+    } else {
+      // already unlocked — re-apply ink gold
+      applySkin("inkgold");
+    }
+    renderSkinGrid();
+  }
+
+  // —— Mock ad ——
+  function showAd(reward) {
+    pendingAdReward = reward;
+    const sheet = document.getElementById("adSheet");
+    const msg = document.getElementById("adMsg");
+    const btn = document.getElementById("adClose");
+    const spinner = document.getElementById("adSpinner");
+    document.getElementById("adTitle").textContent =
+      reward === "auto" ? "解锁自动敲击（模拟广告）" : "解锁皮肤（模拟广告）";
+    msg.textContent = "广告播放中…";
+    spinner.style.display = "block";
+    btn.disabled = true;
+    btn.textContent = "请稍候";
+    sheet.classList.add("show");
+
+    setTimeout(() => {
+      spinner.style.display = "none";
+      msg.textContent = "广告结束";
+      btn.disabled = false;
+      btn.textContent = "领取奖励";
+    }, AD_MS);
+  }
+
+  function finishAd() {
+    document.getElementById("adSheet").classList.remove("show");
+    if (pendingAdReward === "auto") grantAuto();
+    else if (pendingAdReward === "skin") grantSkin();
+    pendingAdReward = null;
+  }
+
+  // —— Skin sheet ——
+  function renderSkinGrid() {
+    const grid = document.getElementById("skinGrid");
+    grid.innerHTML = "";
+    SKINS.forEach((s) => {
+      const unlocked = s.free || state.unlockedSkins.includes(s.id);
+      const div = document.createElement("button");
+      div.type = "button";
+      div.className = "skin-opt" + (state.skin === s.id ? " selected" : "") + (!unlocked ? " locked" : "");
+      div.innerHTML =
+        `<div class="skin-swatch" style="background:radial-gradient(circle at 35% 30%,${s.highlight},${s.primary} 55%,${s.secondary})"></div>` +
+        `${s.name}${unlocked ? "" : "<br><small>需解锁</small>"}`;
+      div.addEventListener("click", () => {
+        if (!unlocked) {
+          document.getElementById("skinSheet").classList.remove("show");
+          showAd("skin");
+          return;
+        }
+        applySkin(s.id);
+      });
+      grid.appendChild(div);
+    });
+  }
+
+  // —— Bind ——
+  function bindTap(el) {
+    const fire = (e) => {
+      e.preventDefault();
+      doTap(false);
+    };
+    el.addEventListener("pointerdown", fire);
+  }
+
+  bindTap(document.getElementById("tap-muyu"));
+  bindTap(document.getElementById("tap-beads"));
+  bindTap(document.getElementById("tap-bowl"));
+
+  document.querySelectorAll(".tab").forEach((t) => {
+    t.addEventListener("click", () => setMode(t.dataset.tab));
+  });
+
+  document.getElementById("btnSkin").addEventListener("click", () => {
+    renderSkinGrid();
+    document.getElementById("skinSheet").classList.add("show");
+  });
+  document.getElementById("closeSkin").addEventListener("click", () => {
+    document.getElementById("skinSheet").classList.remove("show");
+  });
+  document.getElementById("skinSheet").addEventListener("click", (e) => {
+    if (e.target.id === "skinSheet") e.currentTarget.classList.remove("show");
+  });
+
+  document.getElementById("btnAdAuto").addEventListener("click", () => showAd("auto"));
+  document.getElementById("btnAdSkin").addEventListener("click", () => showAd("skin"));
+  document.getElementById("adClose").addEventListener("click", finishAd);
+
+  // init
+  buildBeads();
+  applySkin(state.skin);
+  updateMerit();
+  const bootTab = (new URLSearchParams(location.search).get("tab") || location.hash.replace("#","") || "muyu");
+  setMode(["muyu","beads","bowl"].includes(bootTab) ? bootTab : "muyu");
+  startAutoIfNeeded();
+})();
+  </script>
+</body>
+</html>
