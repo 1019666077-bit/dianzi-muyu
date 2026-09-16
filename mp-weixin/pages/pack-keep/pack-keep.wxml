@@ -5,6 +5,9 @@
   <image src="/assets/ui/rail-data.png" />
   <image src="/assets/ui/rail-reset.png" />
   <image src="/assets/ui/rail-auto.png" />
+  <image src="/assets/ui/tab-muyu.png" />
+  <image src="/assets/ui/tab-beads.png" />
+  <image src="/assets/ui/tab-bowl.png" />
 
   <image src="/assets/skins/premium/muyu-premium-body.png" />
   <image src="/assets/skins/premium/muyu-premium-shade.png" />

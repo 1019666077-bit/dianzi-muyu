@@ -88,15 +88,15 @@
 
   <view class="tabs">
     <view class="tab {{mode === 'muyu' ? 'active' : ''}}" data-tab="muyu" bindtap="setMode">
-      <text class="ico">🪵</text>
+      <image class="tab-ico" src="/assets/ui/tab-muyu.png" mode="aspectFit" />
       <text>木鱼</text>
     </view>
     <view class="tab {{mode === 'beads' ? 'active' : ''}}" data-tab="beads" bindtap="setMode">
-      <text class="ico">📿</text>
+      <image class="tab-ico" src="/assets/ui/tab-beads.png" mode="aspectFit" />
       <text>念珠</text>
     </view>
     <view class="tab {{mode === 'bowl' ? 'active' : ''}}" data-tab="bowl" bindtap="setMode">
-      <text class="ico">🔔</text>
+      <image class="tab-ico" src="/assets/ui/tab-bowl.png" mode="aspectFit" />
       <text>颂钵</text>
     </view>
   </view>
