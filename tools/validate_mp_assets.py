@@ -64,8 +64,11 @@ def main():
 
     pack = cfg.get("packOptions") or {}
     includes = {(x.get("type"), x.get("value")) for x in pack.get("include") or []}
+    ignores = {(x.get("type"), x.get("value")) for x in pack.get("ignore") or []}
+    # Whole-folder "assets" include overrides ignore and pulls branding (~709KB) over 2MB.
+    if ("folder", "assets") in includes:
+        rc = fail("packOptions.include must not list folder:assets (pulls assets/branding)")
     for need in (
-        ("folder", "assets"),
         ("folder", "assets/skins"),
         ("folder", "assets/sfx"),
         ("folder", "assets/ui"),
@@ -74,6 +77,29 @@ def main():
     ):
         if need not in includes:
             rc = fail("packOptions.include missing %s:%s" % need)
+    for need in (
+        ("folder", "assets/branding"),
+        ("folder", "scripts"),
+        ("suffix", ".md"),
+        ("suffix", ".webp"),
+    ):
+        if need not in ignores:
+            rc = fail("packOptions.ignore missing %s:%s" % need)
+
+    private_pack = private_cfg.get("packOptions") or {}
+    private_includes = {(x.get("type"), x.get("value")) for x in private_pack.get("include") or []}
+    if private_includes and ("folder", "assets") in private_includes:
+        rc = fail("project.private.config.json packOptions.include must not list folder:assets")
+    if private_includes:
+        for need in (
+            ("folder", "assets/skins"),
+            ("folder", "assets/sfx"),
+            ("folder", "assets/ui"),
+            ("file", "assets/bg-zen.jpg"),
+            ("file", "assets/share-cover.jpg"),
+        ):
+            if need not in private_includes:
+                rc = fail("project.private.config.json packOptions.include missing %s:%s" % need)
 
     app = load_json(APP_JSON)
     pages = app.get("pages") or []

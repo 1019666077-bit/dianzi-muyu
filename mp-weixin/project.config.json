@@ -8,7 +8,6 @@
       { "type": "suffix", "value": ".webp" }
     ],
     "include": [
-      { "type": "folder", "value": "assets" },
       { "type": "folder", "value": "assets/skins" },
       { "type": "folder", "value": "assets/sfx" },
       { "type": "folder", "value": "assets/ui" },
