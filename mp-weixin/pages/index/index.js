@@ -436,22 +436,17 @@ Page({
   },
 
   autoCommitBead() {
-    if (this.beadBusy) return;
+    if (this.beadBusy || this.beadDrag || this.data.beadDropping) return;
+    this.beadBusy = true;
     this._beadFromAuto = true;
-    if (this.beadDrag || this.data.beadDropping) {
-      this.commitBead();
-      return;
-    }
     this.setData({ beadDropping: true, beadOffset: BEAD_PX * 0.5 });
     setTimeout(() => {
-      if (this.beadBusy || this.beadDrag) {
-        this._beadFromAuto = false;
-        this.setData({ beadDropping: false, beadOffset: 0 });
-        return;
-      }
-      this.commitBead();
+      if (!this.beadDrag) this.commitBead();
       this.setData({ beadOffset: 0 });
-      setTimeout(() => this.setData({ beadDropping: false }), 200);
+      setTimeout(() => {
+        this.setData({ beadDropping: false });
+        if (!this.beadDrag) this.beadBusy = false;
+      }, 200);
     }, 80);
   },
 
@@ -461,10 +456,7 @@ Page({
   },
 
   onBeadStart(e) {
-    if (this.beadBusy) {
-      this.beadBusy = false;
-      return;
-    }
+    if (this.beadBusy || this.data.beadDropping) return;
     const t = this.touchPoint(e);
     if (!t) return;
     this.beadBusy = true;
@@ -495,7 +487,10 @@ Page({
     this.beadDrag = null;
     this.beadBusy = false;
     this.setData({ beadDropping: true, beadOffset: 0 });
-    setTimeout(() => this.setData({ beadDropping: false }), 200);
+    setTimeout(() => {
+      this.setData({ beadDropping: false });
+      this.beadBusy = false;
+    }, 200);
   },
 
   setMode(e) {
@@ -663,6 +658,10 @@ Page({
     this.state.autoUntil = 0;
     this.save();
     this.restartAutoLoop();
+  },
+
+  onMeritFullyReset() {
+    this.onExternalMeritReset();
   },
 
   grantSkin() {

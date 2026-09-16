@@ -65,6 +65,15 @@ App({
     this._privacyWaiters.push(cb);
   },
 
+  whenPrivacyWrite(fn) {
+    this.whenPrivacy((agreed) => {
+      if (!agreed || typeof fn !== "function") return;
+      try {
+        fn();
+      } catch (e) {}
+    });
+  },
+
   _finishPrivacy(agreed) {
     this.globalData.privacyAgreed = !!agreed;
     this.globalData.privacyReady = true;

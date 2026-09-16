@@ -146,7 +146,7 @@ Page({
   onResetAll() {
     wx.showModal({
       title: "清空全部功德",
-      content: "总功德、今日、昨日、分模式累计将全部清零，不可恢复。连续天数与视频快敲计时也会清零。皮肤与解锁不受影响。",
+      content: "总功德、今日、昨日、分模式累计将全部清零，不可恢复。连续天数与视频快敲计时也会清零，并停止自动敲。皮肤与解锁不受影响。",
       confirmText: "继续",
       confirmColor: "#c9a227",
       success: (res) => {
