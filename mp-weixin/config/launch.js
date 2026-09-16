@@ -22,6 +22,8 @@ const IS_TOURIST = !APP_ID || APP_ID === "touristappid";
 module.exports = {
   APP_ID,
   IS_TOURIST,
-  // 流量主开通后填入，例如 'adunit-xxxxxxxx'
+  // 流量主开通后填入，例如 'adunit-xxxxxxxx'。空字符串时 fail-closed，不发奖。
   REWARDED_AD_UNIT_ID: "",
+  // 仅本地调试：true 时游客号可跳过激励视频并发奖。正式/提审必须保持 false。
+  ALLOW_DEV_AD_SKIP: false,
 };

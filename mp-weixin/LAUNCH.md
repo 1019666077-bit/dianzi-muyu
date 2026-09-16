@@ -23,24 +23,28 @@
 6. 微信开发者工具 **重新打开** 本项目（已在本机 `cli open` 过则点编译即可），标题栏应显示你的 AppID 而非游客。
 7. 继续下面 **§1 隐私**、**§2 上传**。
 
-个人主体注意：流量主/激励视频可能需企业或达标后才开；未开通前保持 `REWARDED_AD_UNIT_ID` 为空，用「开发版跳过广告」即可提审体验版。
+个人主体注意：流量主/激励视频可能需企业或达标后才开；未开通前保持 `REWARDED_AD_UNIT_ID` 为空。空广告位 **不会** 发奖（fail-closed），视频解锁入口会 toast「广告未配置」。
 
 ## 1. 填入 AppID
 
 1. 在[微信公众平台](https://mp.weixin.qq.com/)注册小程序，复制 `wx` 开头的 AppID。不要把 AppSecret 写入本仓库。
 2. 用微信开发者工具打开本目录。
 3. 编辑 `project.private.config.json`，将 `appid` 改成你的正式 AppID。开发者工具会用该文件覆盖 `project.config.json`。
-4. **提审前必须改 private 的 appid。**
+4. **提审前必须改 private 的 appid。** 仓库只保留 `touristappid` 占位，不要把正式 AppID 提交进 git。
 
-运行时 `config/launch.js` 通过 `wx.getAccountInfoSync()` 读取当前 AppID。`appid` 缺失或为 `touristappid` 时 `IS_TOURIST === true`，激励视频走开发跳过。
+运行时 `config/launch.js` 通过 `wx.getAccountInfoSync()` 读取当前 AppID。`appid` 缺失或为 `touristappid` 时 `IS_TOURIST === true`。
 
-## 2. 激励视频广告位
+## 2. 激励视频广告位（P0-2：空广告位不发奖）
 
 1. 小程序完成微信认证后，在 MP 后台开通流量主。
 2. 创建激励视频广告位，得到 `adunit-` 开头的广告位 ID。
 3. 填入 `config/launch.js` 的 `REWARDED_AD_UNIT_ID`（不要把密钥写进仓库）。
-4. 未填写或游客 AppID：点击「视频 · 自动敲 / 皮肤」会 toast「开发版：已跳过广告」并直接发奖励，不会假装播放。
-5. 填写后走 `wx.createRewardedVideoAd`。开发者工具里可能失败，代码会 toast；请用真机验证。
+4. **发奖策略（fail-closed，见 `utils/ad.js` `watchRewarded`）**：
+   - 正式 AppID + 已填广告位：走 `wx.createRewardedVideoAd`，看完才发奖。
+   - 正式 AppID + 空广告位：toast「广告未配置」，**不**调用 `onSuccess`，无免费 `grantAuto` / `grantSkin`。
+   - 游客号 / 未配置真实 AppID：toast「当前为开发游客号，无法验证广告」，**不**发奖。
+   - 仅当 `ALLOW_DEV_AD_SKIP === true`（默认 **false**）且为游客号：toast「开发版：已跳过广告」并发奖。提审/上传必须保持 false。
+5. 填写广告位后，开发者工具里播放可能失败，代码会 toast；请用真机验证。
 
 ## 3. 隐私指引
 
@@ -50,4 +54,5 @@
 
 1. 开发者工具 → 上传，填写版本号与备注。
 2. MP 后台 → 版本管理 → 选为体验版，添加体验者。
-3. 提审前核对：正式 AppID、隐私指引已发布、若要用视频解锁则已填广告位 ID。
+3. 提审前核对：`project.private.config.json` 已改为正式 AppID、隐私指引已发布、若要用视频解锁则已填广告位 ID；`ALLOW_DEV_AD_SKIP` 为 false。
+4. 本小程序无 `wx.request` / 上传下载；`project.config.json` 与 `project.private.config.json` 已设 `urlCheck: true`。拒绝隐私协议时功德、提示与场景统计均不写本地。

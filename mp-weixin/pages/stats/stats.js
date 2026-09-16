@@ -107,6 +107,19 @@ Page({
     wx.navigateBack();
   },
 
+  notifyIndexAfterFullReset() {
+    try {
+      const pages = getCurrentPages();
+      for (let i = pages.length - 1; i >= 0; i--) {
+        const p = pages[i];
+        if (p && typeof p.onMeritFullyReset === "function") {
+          p.onMeritFullyReset();
+          return;
+        }
+      }
+    } catch (e) {}
+  },
+
   onResetSession() {
     wx.showModal({
       title: "重置本次功德",
@@ -125,7 +138,7 @@ Page({
   onResetAll() {
     wx.showModal({
       title: "清空全部功德",
-      content: "总功德、今日、昨日、分模式累计将全部清零，不可恢复。皮肤与解锁不受影响。",
+      content: "总功德、今日、昨日、分模式累计与连续天数将全部清零，并停止自动敲。不可恢复。皮肤与解锁不受影响。",
       confirmText: "继续",
       confirmColor: "#c9a227",
       success: (res) => {
@@ -139,6 +152,7 @@ Page({
             if (!r2.confirm) return;
             merit.resetAllMerit(this.state);
             this.save(this.state);
+            this.notifyIndexAfterFullReset();
             this.refresh();
             wx.showToast({ title: "已清空", icon: "none" });
           },

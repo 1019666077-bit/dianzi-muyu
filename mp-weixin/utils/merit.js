@@ -201,6 +201,11 @@ function resetAllMerit(state) {
   state.beads = 0;
   state.bowl = 0;
   state.todayDate = localDateKey();
+  state.streakDays = 0;
+  state.streakLastDate = "";
+  state.streakFreezeMonth = "";
+  state.streakFreezeUsed = false;
+  state.autoUntil = 0;
 }
 
 function normalizeAdQuota(state) {

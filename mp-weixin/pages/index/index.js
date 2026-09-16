@@ -227,11 +227,10 @@ Page({
         title: "自动敲",
         content: "当前为视频快敲。可关闭快敲，或使用底部「自动敲」开启免费慢敲。",
         confirmText: "关闭快敲",
-        cancelText: "慢敲开关",
+        cancelText: "取消",
         confirmColor: "#c9a227",
         success: (res) => {
           if (res.confirm) this.stopFastAuto();
-          else this.onToggleSlowAuto();
         },
       });
       return;
@@ -325,8 +324,25 @@ Page({
       content: "点击右上角 ··· → 添加到我的小程序，可从下拉任务栏快速打开。",
       confirmColor: "#c9a227",
       complete: () => {
-        try {
+        const app = getApp();
+        const write = () => {
           wx.setStorageSync("dianzi-muyu-hints", { myMiniProgramShown: true });
+        };
+        if (app && typeof app.whenPrivacyWrite === "function") {
+          app.whenPrivacyWrite(write);
+          return;
+        }
+        if (app && typeof app.whenPrivacy === "function") {
+          app.whenPrivacy((agreed) => {
+            if (!agreed) return;
+            try {
+              write();
+            } catch (e) {}
+          });
+          return;
+        }
+        try {
+          write();
         } catch (e) {}
       },
     });
@@ -393,15 +409,16 @@ Page({
   },
 
   autoCommitBead() {
-    if (this.beadDrag || this.data.beadDropping) {
-      this.commitBead();
-      return;
-    }
+    if (this.beadBusy || this.beadDrag || this.data.beadDropping) return;
+    this.beadBusy = true;
     this.setData({ beadDropping: true, beadOffset: BEAD_PX * 0.5 });
     setTimeout(() => {
-      this.commitBead();
+      if (!this.beadDrag) this.commitBead();
       this.setData({ beadOffset: 0 });
-      setTimeout(() => this.setData({ beadDropping: false }), 200);
+      setTimeout(() => {
+        this.setData({ beadDropping: false });
+        if (!this.beadDrag) this.beadBusy = false;
+      }, 200);
     }, 80);
   },
 
@@ -411,9 +428,10 @@ Page({
   },
 
   onBeadStart(e) {
-    if (this.beadBusy) return;
+    if (this.beadBusy || this.data.beadDropping) return;
     const t = this.touchPoint(e);
     if (!t) return;
+    this.beadBusy = true;
     this.beadDrag = { y: t.clientY, acc: 0 };
   },
 
@@ -433,11 +451,17 @@ Page({
   },
 
   onBeadEnd() {
-    if (!this.beadDrag) return;
+    if (!this.beadDrag) {
+      this.beadBusy = false;
+      return;
+    }
     if (this.beadDrag.acc >= BEAD_COMMIT) this.commitBead();
     this.beadDrag = null;
     this.setData({ beadDropping: true, beadOffset: 0 });
-    setTimeout(() => this.setData({ beadDropping: false }), 200);
+    setTimeout(() => {
+      this.setData({ beadDropping: false });
+      this.beadBusy = false;
+    }, 200);
   },
 
   setMode(e) {
@@ -566,6 +590,13 @@ Page({
     this.restartAutoLoop();
   },
 
+  onMeritFullyReset() {
+    this.slowAutoOn = false;
+    if (this.state) this.state.autoUntil = 0;
+    this.restartAutoLoop();
+    this.syncMeritUI();
+  },
+
   grantSkin() {
     const mode = this.data.mode;
     const pick = this.firstLockedSkin();
@@ -587,6 +618,9 @@ Page({
   updateAutoStatus() {
     const left = this.autoRemaining();
     const fast = left > 0;
+    merit.normalizeAdQuota(this.state);
+    const cap = merit.AD_AUTO_DAILY_MAX;
+    const remainingFast = Math.max(0, cap - (this.state.adGrantAutoCount || 0));
     if (fast) {
       const sec = Math.ceil(left / 1000);
       const m = Math.floor(sec / 60);
@@ -598,22 +632,30 @@ Page({
         status: "视频快敲中 · 剩余 " + m + ":" + String(s).padStart(2, "0"),
       });
     } else if (this.slowAutoOn) {
+      let slowStatus = "自动慢敲中 · 可点「视频·快敲」加速";
+      if (remainingFast === 0) {
+        slowStatus = "自动慢敲中 · 今日快敲已用完";
+      } else if (remainingFast < cap) {
+        slowStatus = "自动慢敲中 · 今日还可快敲 " + remainingFast + " 次";
+      }
       this.setData({
         autoOn: true,
         fastAutoOn: false,
         slowAutoOn: true,
-        status: "自动慢敲中 · 可点「视频·快敲」加速",
+        status: slowStatus,
       });
     } else {
-      merit.normalizeAdQuota(this.state);
-      const usedFastToday = (this.state.adGrantAutoCount || 0) > 0;
+      let status = STATUS_IDLE;
+      if (remainingFast === 0) {
+        status = "今日快敲已结束 · 明天可再看视频续 5 分钟 · 慢敲仍可用";
+      } else if (remainingFast < cap) {
+        status = "今日还可快敲 " + remainingFast + " 次 · 看视频续 5 分钟 · 慢敲仍可用";
+      }
       this.setData({
         autoOn: false,
         fastAutoOn: false,
         slowAutoOn: false,
-        status: usedFastToday
-          ? "今日快敲已结束 · 明天可再看视频续 5 分钟 · 慢敲仍可用"
-          : STATUS_IDLE,
+        status,
       });
     }
   },
