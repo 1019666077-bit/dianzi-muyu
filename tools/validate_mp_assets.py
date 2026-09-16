@@ -7,10 +7,14 @@ import sys
 ROOT = os.path.join(os.path.dirname(os.path.dirname(__file__)), "mp-weixin")
 JS = os.path.join(ROOT, "pages", "index", "index.js")
 ASSETS_JS = os.path.join(ROOT, "config", "assets.js")
+PACK_WXML = os.path.join(ROOT, "pages", "pack-keep", "pack-keep.wxml")
+APP_JSON = os.path.join(ROOT, "app.json")
 CFG = os.path.join(ROOT, "project.config.json")
+PRIVATE_CFG = os.path.join(ROOT, "project.private.config.json")
 PAGE_EXTS = (".js", ".wxml", ".wxss", ".json")
 
 PATH_RE = re.compile(r"""["'](/assets/[^"']+)["']""")
+WXML_SRC_RE = re.compile(r"""\ssrc=["'](/assets/[^"']+)["']""")
 CONCAT_RE = re.compile(r"""["']/assets/[^"']*["']\s*\+""")
 
 
@@ -53,9 +57,15 @@ def main():
     if setting.get("ignoreDevUnusedFiles") is not False:
         rc = fail("project.config.json setting.ignoreDevUnusedFiles must be false")
 
+    private_cfg = load_json(PRIVATE_CFG) if os.path.isfile(PRIVATE_CFG) else {}
+    private_setting = private_cfg.get("setting") or {}
+    if private_setting.get("ignoreUploadUnusedFiles") is True:
+        rc = fail("project.private.config.json must not re-enable ignoreUploadUnusedFiles")
+
     pack = cfg.get("packOptions") or {}
     includes = {(x.get("type"), x.get("value")) for x in pack.get("include") or []}
     for need in (
+        ("folder", "assets"),
         ("folder", "assets/skins"),
         ("folder", "assets/sfx"),
         ("folder", "assets/ui"),
@@ -65,12 +75,24 @@ def main():
         if need not in includes:
             rc = fail("packOptions.include missing %s:%s" % need)
 
+    app = load_json(APP_JSON)
+    pages = app.get("pages") or []
+    if "pages/pack-keep/pack-keep" not in pages:
+        rc = fail("app.json must register pages/pack-keep/pack-keep for static packer refs")
+
     js = open(JS, encoding="utf-8").read()
     assets_js = open(ASSETS_JS, encoding="utf-8").read()
+    pack_wxml = open(PACK_WXML, encoding="utf-8").read() if os.path.isfile(PACK_WXML) else ""
     if "function asset(" in js or CONCAT_RE.search(js) or CONCAT_RE.search(assets_js):
         rc = fail("dynamic /assets/ path concatenation is not allowed (upload packer drops files)")
     if ".webp" in js or ".webp" in assets_js:
         rc = fail("runtime code still references .webp (use png/jpg)")
+
+    manifest_paths = PATH_RE.findall(assets_js)
+    static_srcs = set(WXML_SRC_RE.findall(pack_wxml))
+    for p in manifest_paths:
+        if p not in static_srcs:
+            rc = fail("pack-keep.wxml missing static src %s" % p)
 
     declared = collect_declared_paths()
     if not declared:
@@ -111,6 +133,7 @@ def main():
     else:
         print("missing: none")
         print("declared local assets:", len(seen))
+        print("pack-keep static srcs:", len(static_srcs))
     print("mp-weixin packed estimate MB:", round(packed_size / 1024 / 1024, 2))
     if packed_size > 2 * 1024 * 1024:
         rc = fail("packed estimate exceeds 2MB main-package limit")

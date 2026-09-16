@@ -1,0 +1,44 @@
+<!-- 静态 src：首页道具走 {{muyuBody}} 绑定，上传分析收不到拼接/变量路径。此页登记在 app.json，仅用于打进 skins/sfx/ui。 -->
+<view class="pack-keep">
+  <image src="/assets/bg-zen.jpg" />
+  <image src="/assets/share-cover.jpg" />
+  <image src="/assets/ui/rail-data.png" />
+  <image src="/assets/ui/rail-reset.png" />
+  <image src="/assets/ui/rail-auto.png" />
+
+  <image src="/assets/skins/premium/muyu-premium-body.png" />
+  <image src="/assets/skins/premium/muyu-premium-shade.png" />
+  <image src="/assets/skins/premium/muyu-premium-spec.png" />
+  <image src="/assets/skins/premium/muyu-premium-ground.png" />
+  <image src="/assets/skins/premium/muyu-premium-rim.png" />
+  <image src="/assets/skins/premium/muyu-premium-mallet.png" />
+
+  <image src="/assets/skins/premium/muyu-premium-jade-body.png" />
+  <image src="/assets/skins/premium/muyu-premium-jade-shade.png" />
+  <image src="/assets/skins/premium/muyu-premium-jade-spec.png" />
+  <image src="/assets/skins/premium/muyu-premium-jade-ground.png" />
+  <image src="/assets/skins/premium/muyu-premium-jade-rim.png" />
+  <image src="/assets/skins/premium/muyu-premium-jade-mallet.png" />
+
+  <image src="/assets/skins/premium/muyu-premium-inkgold-body.png" />
+  <image src="/assets/skins/premium/muyu-premium-inkgold-shade.png" />
+  <image src="/assets/skins/premium/muyu-premium-inkgold-spec.png" />
+  <image src="/assets/skins/premium/muyu-premium-inkgold-ground.png" />
+  <image src="/assets/skins/premium/muyu-premium-inkgold-rim.png" />
+  <image src="/assets/skins/premium/muyu-premium-inkgold-mallet.png" />
+
+  <image src="/assets/skins/bead-wood.png" />
+  <image src="/assets/skins/bead-jade.png" />
+  <image src="/assets/skins/bead-rosewood.png" />
+
+  <image src="/assets/skins/bowl-brass.png" />
+  <image src="/assets/skins/bowl-gold.png" />
+  <image src="/assets/skins/bowl-iron.png" />
+  <image src="/assets/skins/bowl-mallet-brass.png" />
+  <image src="/assets/skins/bowl-mallet-gold.png" />
+  <image src="/assets/skins/bowl-mallet-iron.png" />
+
+  <audio src="/assets/sfx/muyu.wav"></audio>
+  <audio src="/assets/sfx/beads.wav"></audio>
+  <audio src="/assets/sfx/bowl.wav"></audio>
+</view>
