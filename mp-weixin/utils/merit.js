@@ -201,6 +201,32 @@ function resetAllMerit(state) {
   state.beads = 0;
   state.bowl = 0;
   state.todayDate = localDateKey();
+  state.autoUntil = 0;
+  state.streakDays = 0;
+  state.streakLastDate = "";
+  state.streakFreezeUsed = false;
+  state.streakFreezeMonth = "";
+}
+
+/**
+ * 用于 stats 页展示。逻辑 mirror updateStreak 的「是否仍算连续」，
+ * 但不在未敲击 today 时把 streakLastDate 推进到 today。
+ */
+function streakDisplayDays(state) {
+  if (!state) return 0;
+  const today = localDateKey();
+  if (!state.streakLastDate) return 0;
+  const diff = daysBetween(state.streakLastDate, today);
+  if (state.streakLastDate === today) return Math.max(0, state.streakDays || 0);
+  if (diff === 1) return Math.max(0, state.streakDays || 0); // 昨天敲过，今天还没敲，仍显示 N
+  if (diff === 2) {
+    const month = monthKey();
+    const freezeOk =
+      state.streakFreezeMonth === month && !state.streakFreezeUsed;
+    if (freezeOk) return Math.max(0, state.streakDays || 0);
+  }
+  if (diff >= 2) return 0; // 已断连（含 diff===2 且冻结已用）
+  return Math.max(0, state.streakDays || 0);
 }
 
 function normalizeAdQuota(state) {
@@ -249,6 +275,7 @@ module.exports = {
   recordTap,
   resetSession,
   resetAllMerit,
+  streakDisplayDays,
   normalizeAdQuota,
   canGrantAuto,
   canGrantSkin,

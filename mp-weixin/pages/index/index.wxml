@@ -80,8 +80,8 @@
   <view class="toolbar">
     <button class="btn" bindtap="openSkin">{{modeName}}皮肤</button>
     <button class="btn {{slowAutoOn ? 'primary' : ''}}" bindtap="onToggleSlowAuto">自动敲</button>
-    <button class="btn {{fastAutoOn ? 'primary' : ''}}" bindtap="onAdAuto">视频·快敲</button>
-    <button class="btn" bindtap="onAdSkin">视频·皮肤</button>
+    <button class="btn {{fastAutoOn ? 'primary' : ''}} {{rewardAdMuted ? 'btn-muted' : ''}}" bindtap="onAdAuto">视频·快敲</button>
+    <button class="btn {{rewardAdMuted ? 'btn-muted' : ''}}" bindtap="onAdSkin">视频·皮肤</button>
   </view>
   <button class="invite-btn" open-type="share">邀请好友</button>
   <text class="status-line {{autoOn ? 'on' : ''}}">{{status}}</text>

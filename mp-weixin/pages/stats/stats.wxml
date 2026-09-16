@@ -71,6 +71,14 @@
     </view>
   </view>
 
+  <view class="list list-sub prefs-row">
+    <view class="row row-switch">
+      <text class="label">敲击振动</text>
+      <switch checked="{{vibrateOn}}" color="#c9a227" bindchange="onVibrateChange" />
+    </view>
+  </view>
+  <text class="prefs-hint">关闭后，敲击不再震动（不影响音效）</text>
+
   <button class="btn" bindtap="onResetSession">重置本次功德</button>
   <button class="btn danger" bindtap="onResetAll">清空全部功德</button>
 </view>

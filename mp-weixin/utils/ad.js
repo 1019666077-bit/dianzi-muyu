@@ -15,15 +15,25 @@ function resolveRewardedGrant(opts) {
   const unit = String(cfg.adUnitId || "").trim();
   const allowDevAdSkip = cfg.allowDevAdSkip === true;
   if (!isTourist && unit) {
-    return { action: "play" };
+    return { action: "play", reason: "ok" };
   }
   if (isTourist && allowDevAdSkip) {
-    return { action: "skip", toast: "开发版：已跳过广告" };
+    return { action: "skip", toast: "开发版：已跳过广告", reason: "ok" };
   }
   if (isTourist) {
-    return { action: "refuse", toast: "当前为开发游客号，无法验证广告" };
+    return { action: "refuse", toast: "当前为开发游客号，无法验证广告", reason: "tourist" };
   }
-  return { action: "refuse", toast: "广告未配置" };
+  return { action: "refuse", toast: "广告未配置", reason: "no_unit" };
+}
+
+/** 给用户看的短文案（无「游客号」「未配置」等开发词） */
+function userMessageForPolicy(policy) {
+  if (!policy) return "视频暂不可用，敲击与慢敲仍免费";
+  if (policy.action === "play") return "";
+  if (policy.action === "skip") return policy.toast || "开发版：已跳过广告";
+  if (policy.reason === "tourist") return "正式版开放后，可看视频加速";
+  if (policy.reason === "no_unit") return "视频功能接入中，请稍后再试";
+  return "视频暂不可用，敲击与慢敲仍免费";
 }
 
 function currentGrantPolicy(adUnitId) {
@@ -118,4 +128,6 @@ module.exports = {
   watchRewarded,
   canUseRealAd,
   resolveRewardedGrant,
+  currentGrantPolicy,
+  userMessageForPolicy,
 };

@@ -1,4 +1,5 @@
 const merit = require("./utils/merit");
+const { writeWhenPrivacy } = require("./utils/localWrite");
 
 function getWeekId() {
   const x = new Date();
@@ -35,21 +36,23 @@ App({
 
   recordScene(scene) {
     if (scene == null) return;
-    try {
-      const key = "dianzi-muyu-scene-stats";
-      const o = wx.getStorageSync(key) || { w: "", counts: {} };
-      const week = getWeekId();
-      if (o.w !== week) {
-        o.w = week;
-        o.counts = {};
-      }
-      const s = String(scene);
-      if (s === "1089") o.counts.s1089 = (o.counts.s1089 || 0) + 1;
-      else if (s === "1036") o.counts.s1036 = (o.counts.s1036 || 0) + 1;
-      else if (s === "1053") o.counts.s1053 = (o.counts.s1053 || 0) + 1;
-      else o.counts.other = (o.counts.other || 0) + 1;
-      wx.setStorageSync(key, o);
-    } catch (e) {}
+    writeWhenPrivacy(this, () => {
+      try {
+        const key = "dianzi-muyu-scene-stats";
+        const o = wx.getStorageSync(key) || { w: "", counts: {} };
+        const week = getWeekId();
+        if (o.w !== week) {
+          o.w = week;
+          o.counts = {};
+        }
+        const s = String(scene);
+        if (s === "1089") o.counts.s1089 = (o.counts.s1089 || 0) + 1;
+        else if (s === "1036") o.counts.s1036 = (o.counts.s1036 || 0) + 1;
+        else if (s === "1053") o.counts.s1053 = (o.counts.s1053 || 0) + 1;
+        else o.counts.other = (o.counts.other || 0) + 1;
+        wx.setStorageSync(key, o);
+      } catch (e) {}
+    });
   },
 
   whenPrivacy(cb) {

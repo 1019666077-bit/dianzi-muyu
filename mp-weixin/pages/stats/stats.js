@@ -1,8 +1,21 @@
 const merit = require("../../utils/merit");
+const prefs = require("../../utils/prefs");
 
 const FREE_UNLOCKS = [
   "muyu-amber", "muyu-jade", "beads-wood", "beads-jade", "bowl-brass", "bowl-gold",
 ];
+
+function meritNotifyIndexReset() {
+  const pages = getCurrentPages();
+  for (let i = pages.length - 1; i >= 0; i--) {
+    const p = pages[i];
+    const route = p.route || "";
+    if (route.indexOf("pages/index/index") >= 0) {
+      if (typeof p.onExternalMeritReset === "function") p.onExternalMeritReset();
+      return;
+    }
+  }
+}
 
 Page({
   data: {
@@ -15,6 +28,7 @@ Page({
     beads: 0,
     bowl: 0,
     streakDays: 0,
+    vibrateOn: true,
     gapHint: "",
     showSceneDebug: false,
     sceneWeek: "",
@@ -86,7 +100,8 @@ Page({
       muyu: state.muyu,
       beads: state.beads,
       bowl: state.bowl,
-      streakDays: state.streakDays || 0,
+      streakDays: merit.streakDisplayDays(state),
+      vibrateOn: prefs.isVibrateOn(),
       gapHint,
     });
   },
@@ -101,6 +116,12 @@ Page({
       return;
     }
     write();
+  },
+
+  onVibrateChange(e) {
+    const on = !!(e.detail && e.detail.value);
+    prefs.setVibrateOn(on);
+    this.setData({ vibrateOn: on });
   },
 
   goBack() {
@@ -125,7 +146,7 @@ Page({
   onResetAll() {
     wx.showModal({
       title: "清空全部功德",
-      content: "总功德、今日、昨日、分模式累计将全部清零，不可恢复。皮肤与解锁不受影响。",
+      content: "总功德、今日、昨日、分模式累计将全部清零，不可恢复。连续天数与视频快敲计时也会清零。皮肤与解锁不受影响。",
       confirmText: "继续",
       confirmColor: "#c9a227",
       success: (res) => {
@@ -140,6 +161,7 @@ Page({
             merit.resetAllMerit(this.state);
             this.save(this.state);
             this.refresh();
+            meritNotifyIndexReset();
             wx.showToast({ title: "已清空", icon: "none" });
           },
         });

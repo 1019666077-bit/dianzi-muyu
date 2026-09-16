@@ -1,6 +1,14 @@
 const launch = require("../../config/launch");
-const { initRewardedAd, watchRewarded } = require("../../utils/ad");
+const {
+  initRewardedAd,
+  watchRewarded,
+  canUseRealAd,
+  currentGrantPolicy,
+  userMessageForPolicy,
+} = require("../../utils/ad");
 const merit = require("../../utils/merit");
+const prefs = require("../../utils/prefs");
+const { writeWhenPrivacy } = require("../../utils/localWrite");
 
 const AUTO_MS = 5 * 60 * 1000;
 const FAST_AUTO_INTERVAL = 550;
@@ -127,6 +135,8 @@ Page({
     skinGroups: [],
     currentSkin: "amber",
     isTourist: launch.IS_TOURIST,
+    rewardAdPlayable: false,
+    rewardAdMuted: true,
     bodyHit: false,
     muyuSwing: false,
     muyuFlash: false,
@@ -149,8 +159,11 @@ Page({
     }
     this.slowAutoOn = false;
     this.floatId = 0;
+    this.floatTimers = [];
     this.lastTapAt = 0;
     this.beadBusy = false;
+    this._beadFromAuto = false;
+    this._tapFromAuto = false;
     this.pendingAd = null;
     this.autoTimer = null;
     this.autoTick = null;
@@ -164,6 +177,7 @@ Page({
     });
     this.applyAllSkins();
     this.syncMeritUI();
+    this.refreshRewardAdUi();
     this.restartAutoLoop();
   },
 
@@ -171,7 +185,24 @@ Page({
     this.state = merit.getState(getApp(), FREE_UNLOCKS);
     if (merit.rollover(this.state)) this.save();
     this.syncMeritUI();
+    this.refreshRewardAdUi();
     this.restartAutoLoop();
+  },
+
+  refreshRewardAdUi() {
+    const playable = canUseRealAd();
+    this.setData({
+      rewardAdPlayable: playable,
+      rewardAdMuted: !playable,
+    });
+  },
+
+  onExternalMeritReset() {
+    this.state = merit.getState(getApp(), FREE_UNLOCKS);
+    this.slowAutoOn = false; // 清空语义：停止一切自动
+    this.clearAutoTimers();
+    this.syncMeritUI();
+    this.updateAutoStatus();
   },
 
   initSafeArea() {
@@ -185,6 +216,10 @@ Page({
   onUnload() {
     this.slowAutoOn = false;
     this.clearAutoTimers();
+    (this.floatTimers || []).forEach((id) => {
+      try { clearTimeout(id); } catch (e) {}
+    });
+    this.floatTimers = [];
     Object.keys(this.audios || {}).forEach((k) => {
       try { this.audios[k].destroy(); } catch (e) {}
     });
@@ -305,8 +340,9 @@ Page({
     this.syncMeritUI();
     this.floatText();
     this.play(kind);
-    wx.vibrateShort({ type: "light" });
-    this.maybeShowMyMiniProgramHint();
+    if (prefs.isVibrateOn()) {
+      wx.vibrateShort({ type: "light" });
+    }
   },
 
   maybeShowMyMiniProgramHint() {
@@ -324,9 +360,11 @@ Page({
       content: "点击右上角 ··· → 添加到我的小程序，可从下拉任务栏快速打开。",
       confirmColor: "#c9a227",
       complete: () => {
-        try {
-          wx.setStorageSync("dianzi-muyu-hints", { myMiniProgramShown: true });
-        } catch (e) {}
+        writeWhenPrivacy(getApp(), () => {
+          try {
+            wx.setStorageSync("dianzi-muyu-hints", { myMiniProgramShown: true });
+          } catch (e) {}
+        });
       },
     });
   },
@@ -348,9 +386,11 @@ Page({
     }
     const floats = this.data.floats.concat([{ id, text: "+1", left, top }]);
     this.setData({ floats });
-    setTimeout(() => {
+    const tid = setTimeout(() => {
       this.setData({ floats: this.data.floats.filter((x) => x.id !== id) });
+      this.floatTimers = (this.floatTimers || []).filter((x) => x !== tid);
     }, 1000);
+    this.floatTimers = (this.floatTimers || []).concat([tid]);
   },
 
   restart(flag, ms) {
@@ -366,6 +406,7 @@ Page({
     if (now - this.lastTapAt < 90) return;
     this.lastTapAt = now;
     this.bump("muyu");
+    if (!this._tapFromAuto) this.maybeShowMyMiniProgramHint();
     this.restart("bodyHit", 320);
     this.restart("muyuSwing", 260);
     this.restart("muyuFlash", 380);
@@ -376,6 +417,7 @@ Page({
     if (now - this.lastTapAt < 90) return;
     this.lastTapAt = now;
     this.bump("bowl");
+    if (!this._tapFromAuto) this.maybeShowMyMiniProgramHint();
     this.restart("bodyHit", 320);
     this.restart("bowlSwing", 320);
     this.restart("bowlFlash", 420);
@@ -389,15 +431,24 @@ Page({
     beads.unshift(last);
     this.setData({ beads });
     this.bump("beads");
+    if (!this._beadFromAuto) this.maybeShowMyMiniProgramHint();
+    this._beadFromAuto = false;
   },
 
   autoCommitBead() {
+    if (this.beadBusy) return;
+    this._beadFromAuto = true;
     if (this.beadDrag || this.data.beadDropping) {
       this.commitBead();
       return;
     }
     this.setData({ beadDropping: true, beadOffset: BEAD_PX * 0.5 });
     setTimeout(() => {
+      if (this.beadBusy || this.beadDrag) {
+        this._beadFromAuto = false;
+        this.setData({ beadDropping: false, beadOffset: 0 });
+        return;
+      }
       this.commitBead();
       this.setData({ beadOffset: 0 });
       setTimeout(() => this.setData({ beadDropping: false }), 200);
@@ -410,9 +461,13 @@ Page({
   },
 
   onBeadStart(e) {
-    if (this.beadBusy) return;
+    if (this.beadBusy) {
+      this.beadBusy = false;
+      return;
+    }
     const t = this.touchPoint(e);
     if (!t) return;
+    this.beadBusy = true;
     this.beadDrag = { y: t.clientY, acc: 0 };
   },
 
@@ -432,9 +487,13 @@ Page({
   },
 
   onBeadEnd() {
-    if (!this.beadDrag) return;
+    if (!this.beadDrag) {
+      this.beadBusy = false;
+      return;
+    }
     if (this.beadDrag.acc >= BEAD_COMMIT) this.commitBead();
     this.beadDrag = null;
+    this.beadBusy = false;
     this.setData({ beadDropping: true, beadOffset: 0 });
     setTimeout(() => this.setData({ beadDropping: false }), 200);
   },
@@ -490,6 +549,13 @@ Page({
   },
 
   onToggleSlowAuto() {
+    if (this.autoRemaining() > 0) {
+      wx.showToast({
+        title: "快敲进行中，关闭快敲请点「视频·快敲」",
+        icon: "none",
+        duration: 2500,
+      });
+    }
     this.slowAutoOn = !this.slowAutoOn;
     this.restartAutoLoop();
   },
@@ -507,6 +573,16 @@ Page({
       });
       return;
     }
+    if (!merit.canGrantAuto(this.state)) {
+      this.save();
+      wx.showToast({
+        title: "今日快敲次数已用完（2/2），明天再来；慢敲仍免费",
+        icon: "none",
+        duration: 2500,
+      });
+      return;
+    }
+    if (!this.ensureRewardAdPlayable()) return;
     this.showAd("auto");
   },
   onAdSkin() {
@@ -514,7 +590,30 @@ Page({
       wx.showToast({ title: "当前模式皮肤已全部解锁", icon: "none" });
       return;
     }
+    if (!merit.canGrantSkin(this.state)) {
+      this.save();
+      wx.showToast({
+        title: "今日皮肤视频次数已用完（3/3），明天再来",
+        icon: "none",
+        duration: 2500,
+      });
+      return;
+    }
+    if (!this.ensureRewardAdPlayable()) return;
     this.showAd("skin");
+  },
+
+  ensureRewardAdPlayable() {
+    const policy = currentGrantPolicy();
+    if (policy.action === "refuse") {
+      wx.showToast({
+        title: userMessageForPolicy(policy),
+        icon: "none",
+        duration: 2500,
+      });
+      return false;
+    }
+    return true;
   },
 
   showAd(reward) {
@@ -536,6 +635,7 @@ Page({
       });
       return;
     }
+    if (!this.ensureRewardAdPlayable()) return;
     this.save();
     this.pendingAd = reward;
     watchRewarded({
@@ -577,6 +677,7 @@ Page({
       this.state.unlockedSkins.push(mode + "-" + pick.id);
     }
     this.applySkin(mode, pick.id);
+    wx.showToast({ title: "已解锁 " + pick.name, icon: "none" });
   },
 
   autoRemaining() {
@@ -637,10 +738,13 @@ Page({
     }
     const ms = fast ? FAST_AUTO_INTERVAL : SLOW_AUTO_INTERVAL;
     this.autoTimer = setInterval(() => {
+      if (this.beadBusy || this.beadDrag) return;
       const mode = this.data.mode;
+      this._tapFromAuto = true;
       if (mode === "muyu") this.onTapMuyu();
       else if (mode === "bowl") this.onTapBowl();
       else this.autoCommitBead();
+      this._tapFromAuto = false;
     }, ms);
     if (fast) {
       this.autoTick = setInterval(() => {

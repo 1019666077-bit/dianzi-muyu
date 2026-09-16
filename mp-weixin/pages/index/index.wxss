@@ -436,6 +436,7 @@ button::after { border: none; }
   font-weight: 600;
   border-color: transparent;
 }
+.btn-muted { opacity: 0.45; }
 .invite-btn {
   margin: 6px 48px 2px;
   padding: 10px 36px;

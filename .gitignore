@@ -14,3 +14,7 @@ tools/__pycache__/
 # 本地参考视频抽帧，体积大，不必进仓库
 assets/ref-clip/
 assets/ref-clip.mp4
+
+# local WeChat AppID override �� do not commit
+mp-weixin/project.private.config.json
+

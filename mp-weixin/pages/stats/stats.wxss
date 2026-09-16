@@ -104,6 +104,19 @@ page {
   letter-spacing: 0.04em;
   margin: -12px 0 18px 4px;
 }
+.row-switch {
+  padding: 12px 0;
+}
+.prefs-row {
+  margin-bottom: 8px;
+}
+.prefs-hint {
+  display: block;
+  font-size: 12px;
+  color: rgba(232, 197, 106, 0.72);
+  letter-spacing: 0.04em;
+  margin: -4px 0 18px 4px;
+}
 .scene-debug {
   margin-top: 4px;
 }
