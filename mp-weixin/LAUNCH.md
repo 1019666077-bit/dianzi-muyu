@@ -55,3 +55,4 @@
 1. 开发者工具 → 上传，填写版本号与备注。
 2. MP 后台 → 版本管理 → 选为体验版，添加体验者。
 3. 提审前核对：`project.private.config.json` 已改为正式 AppID、隐私指引已发布、若要用视频解锁则已填广告位 ID；`ALLOW_DEV_AD_SKIP` 为 false。
+4. 本小程序无 `wx.request` / 上传下载；`project.config.json` 与 `project.private.config.json` 已设 `urlCheck: true`。拒绝隐私协议时功德、提示与场景统计均不写本地。

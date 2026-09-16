@@ -324,8 +324,25 @@ Page({
       content: "点击右上角 ··· → 添加到我的小程序，可从下拉任务栏快速打开。",
       confirmColor: "#c9a227",
       complete: () => {
-        try {
+        const app = getApp();
+        const write = () => {
           wx.setStorageSync("dianzi-muyu-hints", { myMiniProgramShown: true });
+        };
+        if (app && typeof app.whenPrivacyWrite === "function") {
+          app.whenPrivacyWrite(write);
+          return;
+        }
+        if (app && typeof app.whenPrivacy === "function") {
+          app.whenPrivacy((agreed) => {
+            if (!agreed) return;
+            try {
+              write();
+            } catch (e) {}
+          });
+          return;
+        }
+        try {
+          write();
         } catch (e) {}
       },
     });
@@ -392,15 +409,16 @@ Page({
   },
 
   autoCommitBead() {
-    if (this.beadDrag || this.data.beadDropping) {
-      this.commitBead();
-      return;
-    }
+    if (this.beadBusy || this.beadDrag || this.data.beadDropping) return;
+    this.beadBusy = true;
     this.setData({ beadDropping: true, beadOffset: BEAD_PX * 0.5 });
     setTimeout(() => {
-      this.commitBead();
+      if (!this.beadDrag) this.commitBead();
       this.setData({ beadOffset: 0 });
-      setTimeout(() => this.setData({ beadDropping: false }), 200);
+      setTimeout(() => {
+        this.setData({ beadDropping: false });
+        if (!this.beadDrag) this.beadBusy = false;
+      }, 200);
     }, 80);
   },
 
@@ -410,9 +428,10 @@ Page({
   },
 
   onBeadStart(e) {
-    if (this.beadBusy) return;
+    if (this.beadBusy || this.data.beadDropping) return;
     const t = this.touchPoint(e);
     if (!t) return;
+    this.beadBusy = true;
     this.beadDrag = { y: t.clientY, acc: 0 };
   },
 
@@ -432,11 +451,17 @@ Page({
   },
 
   onBeadEnd() {
-    if (!this.beadDrag) return;
+    if (!this.beadDrag) {
+      this.beadBusy = false;
+      return;
+    }
     if (this.beadDrag.acc >= BEAD_COMMIT) this.commitBead();
     this.beadDrag = null;
     this.setData({ beadDropping: true, beadOffset: 0 });
-    setTimeout(() => this.setData({ beadDropping: false }), 200);
+    setTimeout(() => {
+      this.setData({ beadDropping: false });
+      this.beadBusy = false;
+    }, 200);
   },
 
   setMode(e) {
@@ -563,6 +588,13 @@ Page({
     this.state.autoUntil = 0;
     this.save();
     this.restartAutoLoop();
+  },
+
+  onMeritFullyReset() {
+    this.slowAutoOn = false;
+    if (this.state) this.state.autoUntil = 0;
+    this.restartAutoLoop();
+    this.syncMeritUI();
   },
 
   grantSkin() {

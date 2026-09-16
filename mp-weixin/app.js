@@ -35,7 +35,7 @@ App({
 
   recordScene(scene) {
     if (scene == null) return;
-    try {
+    this.whenPrivacyWrite(() => {
       const key = "dianzi-muyu-scene-stats";
       const o = wx.getStorageSync(key) || { w: "", counts: {} };
       const week = getWeekId();
@@ -49,7 +49,7 @@ App({
       else if (s === "1053") o.counts.s1053 = (o.counts.s1053 || 0) + 1;
       else o.counts.other = (o.counts.other || 0) + 1;
       wx.setStorageSync(key, o);
-    } catch (e) {}
+    });
   },
 
   whenPrivacy(cb) {
@@ -60,6 +60,15 @@ App({
     }
     this._privacyWaiters = this._privacyWaiters || [];
     this._privacyWaiters.push(cb);
+  },
+
+  whenPrivacyWrite(fn) {
+    this.whenPrivacy((agreed) => {
+      if (!agreed || typeof fn !== "function") return;
+      try {
+        fn();
+      } catch (e) {}
+    });
   },
 
   _finishPrivacy(agreed) {
