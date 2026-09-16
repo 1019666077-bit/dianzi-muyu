@@ -19,6 +19,16 @@ python3 -m http.server 8848
 
 用浏览器打开 `index.html` 即可。部分浏览器对 `file://` 下的 AudioContext 有限制，首次点击后会解锁声音。
 
+### 方式三：微信小程序（mp-weixin）
+
+用[微信开发者工具](https://developers.weixin.qq.com/miniprogram/dev/devtools/download.html)打开本仓库的 **`mp-weixin/`** 目录（不要选仓库根）。命令行也可：
+
+```bat
+"D:\微信web开发者工具\cli.bat" auto --project "C:\Users\MOON\Desktop\dianzi-muyu\mp-weixin" --trust-project
+```
+
+小程序页含木鱼 / 念珠 / 颂钵、分层精修皮肤、模拟激励视频解锁。素材在 `mp-weixin/assets/`。
+
 ## 功能一览
 
 | 功能 | 说明 |
@@ -26,9 +36,13 @@ python3 -m http.server 8848
 | 三模式 Tab | 木鱼 / 念珠 / 颂钵 |
 | 点击交互 | 缩放动画 + 浮动「功德+1」等文案 |
 | 音效 | Web Audio 合成（无外部音频资源） |
-| 计数持久化 | `localStorage` 键 `dianzi-muyu-v1` |
-| 皮肤 | 琥珀木、青玉（免费）；墨金（广告解锁）CSS 渐变绘制 |
-| 模拟广告 | 「看广告解锁」→ 1.5s 后「广告结束」→ 解锁 5 分钟自动敲 **或** 皮肤 |
+| 计数持久化 | `localStorage` / 小程序 `wx.storage` 键 `dianzi-muyu-v1` |
+| 皮肤 | 木鱼：樟木 / 花梨 / 紫檀 + **精修·樟木 / 花梨 / 紫檀**（分层 WebP）；念珠、颂钵各三套。精修·紫檀与经典紫檀需广告解锁 |
+| 模拟广告 | 「看广告解锁」→ 1.5s 后「广告结束」→ 解锁 5 分钟自动敲 **或** 下一档未解锁皮肤 |
+
+精修木鱼用 `assets/skins/muyu-premium-*-ai.png` 对齐轮廓后导出分层 WebP（body / shade / spec / ground / rim / mallet）。重建：`python tools/build_premium_muyu.py`。经典皮肤导出：`python tools/export_mp_skins.py`。
+
+精修木鱼用 `assets/skins/muyu-premium-*-ai.png` 对齐轮廓后导出分层 WebP（body / shade / spec / ground / rim / mallet）。重建：`python tools/build_premium_muyu.py`。经典皮肤导出：`python tools/export_mp_skins.py`。
 
 ## 什么是 Mock，什么以后接真流量主
 
@@ -45,9 +59,15 @@ python3 -m http.server 8848
 
 ```
 dianzi-muyu/
-  index.html    # 单文件 HTML + CSS + JS
+  index.html    # Web 单文件原型（含精修预览）
   README.md
   .gitignore
+  assets/       # 透明底道具图 + 禅寺背景 + 精修 PNG
+  mp-weixin/    # 微信小程序：开发者工具打开此目录
+    assets/skins/premium/  # 精修分层 WebP（≤200KB）
+  tools/
+    build_premium_muyu.py  # 精修分层构建
+    export_mp_skins.py     # 经典皮肤 PNG→WebP
   shots/        # 可选截图
 ```
 

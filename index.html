@@ -19,6 +19,7 @@
       --skin-primary: #c4783a;
       --skin-secondary: #8b4513;
       --skin-highlight: #e8a85c;
+      --bead-url: url("assets/skins/bead-wood.png?v=25");
     }
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     html, body {
@@ -33,7 +34,7 @@
       width: 390px;
       height: 844px;
       max-width: 100vw;
-      max-height: 100dvh;
+      max-height: 100vh;
       margin: 0 auto;
       background: #0d0a06 url("assets/bg-zen.png") center/cover no-repeat;
       position: relative;
@@ -45,14 +46,37 @@
     #phone::before {
       content: "";
       position: absolute;
-      inset: 0;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
       background: linear-gradient(180deg, rgba(8,6,4,.5) 0%, rgba(8,6,4,.22) 42%, rgba(8,6,4,.62) 100%);
       pointer-events: none;
       z-index: 0;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
     }
     #phone > * { position: relative; z-index: 1; }
     @media (max-width: 400px) {
-      #phone { width: 100vw; height: 100dvh; }
+      #phone { width: 100vw; height: 100vh; }
+    }
+    html.in-mp, html.in-mp body {
+      width: 100%;
+      height: 100%;
+    }
+    html.in-mp #phone {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      max-width: none;
+      max-height: none;
+      box-shadow: none;
     }
     .topbar {
       background: linear-gradient(180deg, rgba(0,0,0,.4), transparent);
@@ -61,6 +85,7 @@
       justify-content: space-between;
       align-items: center;
       flex-shrink: 0;
+      z-index: 8;
     }
     .brand {
       font-size: 15px;
@@ -107,66 +132,236 @@
       pointer-events: none;
     }
     .tap-area {
-      width: 280px;
-      height: 280px;
+      width: 300px;
+      min-height: 210px;
       position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       touch-action: manipulation;
+      overflow: visible;
     }
-    .tap-area.squash .instrument { transform: scale(0.92); }
+    .instrument-body.hit {
+      animation: bodyHit .32s ease-out;
+      transition: none;
+    }
+    @keyframes bodyHit {
+      0%, 34% { transform: scale(1); }
+      50% { transform: scale(0.968); }
+      100% { transform: scale(1); }
+    }
     .instrument {
-      width: 280px;
-      height: 280px;
-      transition: transform .08s ease-out;
       position: relative;
+      width: 300px;
+    }
+    .instrument.stage-muyu { width: 300px; height: 240px; overflow: visible; }
+    .instrument.stage-muyu.premium {
+      perspective: 780px;
+    }
+    .instrument.stage-muyu.premium .instrument-body {
+      transform: rotateX(9deg) rotateY(-3deg);
+    }
+    .instrument.stage-muyu.premium .instrument-body.hit {
+      animation: bodyHitPremium .32s ease-out;
+    }
+    @keyframes bodyHitPremium {
+      0%, 34% { transform: rotateX(9deg) rotateY(-3deg) scale(1); }
+      50% { transform: rotateX(12deg) rotateY(-3deg) scale(0.958); }
+      100% { transform: rotateX(9deg) rotateY(-3deg) scale(1); }
+    }
+    .instrument.stage-muyu.premium .layer-body {
+      filter: drop-shadow(0 20px 26px rgba(0,0,0,.58)) drop-shadow(0 6px 10px rgba(0,0,0,.35));
+    }
+    .instrument.stage-bowl {
+      width: 300px;
+      height: 225px;
+      overflow: visible;
+    }
+    .instrument.stage-beads {
+      width: 72px;
+      height: 400px;
+    }
+    .tap-area.beads-tap {
+      width: 220px;
+      min-height: 400px;
+      touch-action: none;
+      cursor: grab;
+    }
+    .tap-area.beads-tap:active { cursor: grabbing; }
+    .bead-strand {
+      width: 72px;
+      height: 400px;
+      overflow: hidden;
+      position: relative;
+      filter: drop-shadow(0 18px 24px rgba(0,0,0,.55));
+    }
+    .bead-track {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: -64px;
+      filter: drop-shadow(0 8px 12px rgba(0,0,0,.35));
+    }
+    .bead-track.dropping {
+      transition: transform .2s cubic-bezier(.2, .85, .25, 1);
+    }
+    .bead {
+      width: 64px;
+      height: 64px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      overflow: hidden;
+      background: var(--bead-url) center / cover no-repeat;
     }
     .prop-img {
-      width: 280px;
-      height: 280px;
-      object-fit: contain;
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: fill;
       display: block;
-      margin: 0 auto;
-      filter: drop-shadow(0 18px 28px rgba(0,0,0,.55));
-      transition: filter .25s ease, transform .08s ease-out;
+      filter: drop-shadow(0 22px 32px rgba(0,0,0,.62));
+      transition: filter .25s ease;
       user-select: none;
       -webkit-user-drag: none;
       pointer-events: none;
     }
-    .instrument.hd {
-      width: 280px;
-      height: 280px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    .instrument-body {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 1;
+      transition: transform .1s ease-out;
+    }
+    .layer-rest { z-index: 2; }
+    .stage-muyu .layer-rest { display: none; }
+    .stage-muyu .prop-img { object-fit: contain; }
+    /* 木鱼槌：右手握右侧柄端，接近水平预备，腕部下点 */
+    .muyu-mallet-img {
+      position: absolute;
+      right: -8%;
+      top: -28%;
+      width: 66%;
+      height: auto;
+      z-index: 4;
+      pointer-events: none;
+      transform-origin: 94% 50%;
+      transform: rotate(-48deg);
+      filter: drop-shadow(0 8px 10px rgba(0,0,0,.45));
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+    }
+    .muyu-mallet { display: none; }
+    .muyu-mallet-img.swing { animation: muyuTap .26s cubic-bezier(.35, 0, .2, 1); }
+    @keyframes muyuTap {
+      0%, 100% { transform: rotate(-48deg); }
+      36% { transform: rotate(-10deg); }
+    }
+    .stage-bowl .instrument-body {
+      top: 4%;
+      right: 24%;
+      bottom: 8%;
+      left: 2%;
+    }
+    .stage-bowl .prop-img {
+      object-fit: contain;
+      object-position: center bottom;
+      filter: drop-shadow(0 20px 28px rgba(0,0,0,.55));
+    }
+    /* 颂钵槌：右手握柄顶，槌头停在右上钵沿外，向内点沿 */
+    .bowl-mallet-wrap {
+      position: absolute;
+      right: 24%;
+      top: 10%;
+      height: 46%;
+      width: auto;
+      z-index: 4;
+      pointer-events: none;
+      transform-origin: 50% 8%;
+      transform: rotate(-24deg);
+      filter: drop-shadow(0 10px 12px rgba(0,0,0,.45));
+    }
+    .bowl-mallet-img {
+      display: block;
+      height: 100%;
+      width: auto;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+    }
+    /* brass 素材上下颠倒，翻转到握把在上、槌头在下 */
+    .bowl-mallet-img.mallet-flip {
+      transform: scaleY(-1);
+      transform-origin: 50% 50%;
+    }
+    .bowl-mallet { display: none; }
+    .bowl-mallet-wrap.swing { animation: bowlTap .32s cubic-bezier(.2, .85, .25, 1); }
+    @keyframes bowlTap {
+      0%, 100% { transform: rotate(-24deg); }
+      36%, 50% { transform: translate(-28px, 10px) rotate(-48deg); }
+    }
+    #img-beads {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      transition: transform .18s cubic-bezier(.18, 1.45, .32, 1);
+    }
+    .hit-flash {
+      position: absolute;
+      width: 34px;
+      height: 34px;
+      margin: -17px 0 0 -17px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #fff6d0 0%, rgba(232,197,106,.75) 38%, transparent 70%);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 6;
+    }
+    .stage-muyu .hit-flash { left: 56%; top: 18%; }
+    .stage-bowl .hit-flash { left: 66%; top: 30%; }
+    .stage-muyu .hit-flash.pop { animation: flashPop .28s ease-out .1s; }
+    .stage-bowl .hit-flash.pop { animation: flashPop .28s ease-out .14s; }
+    @keyframes flashPop {
+      0% { opacity: .95; transform: scale(.35); }
+      100% { opacity: 0; transform: scale(2.3); }
     }
     .instrument.hd .ripple {
       position: absolute;
-      left: 50%; top: 58%;
+      left: 38%; top: 32%;
       width: 40px; height: 40px;
       margin: -20px;
       border: 2px solid rgba(232,197,106,.55);
       border-radius: 50%;
       opacity: 0;
       pointer-events: none;
-    }
-    .instrument.hd.ripple-on .ripple {
-      animation: rip 0.7s ease-out;
+      z-index: 5;
     }
     @keyframes rip {
       from { transform: scale(0.6); opacity: .8; }
       to { transform: scale(3.2); opacity: 0; }
     }
-    .ripple.play { animation: rip 0.7s ease-out; }
-    /* 皮肤色调：同一套高清图 + 滤镜 */
-    .skin-amber .prop-img { filter: drop-shadow(0 18px 28px rgba(0,0,0,.55)); }
-    .skin-jade .prop-img { filter: drop-shadow(0 18px 28px rgba(0,0,0,.55)) hue-rotate(95deg) saturate(1.15) brightness(1.05); }
-    .skin-inkgold .prop-img { filter: drop-shadow(0 18px 28px rgba(0,0,0,.55)) sepia(.35) saturate(1.4) brightness(.72) contrast(1.15); }
+    .ripple.play { animation: rip 0.7s ease-out .14s; }
+    .skin-swatch img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto 6px;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,.4));
+    }
     .float-layer {
       position: absolute;
-      inset: 0;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
       pointer-events: none;
       overflow: hidden;
       z-index: 5;
@@ -186,12 +381,12 @@
       100% { opacity: 0; transform: translate(-50%, -80px) scale(1.15); }
     }
     .toolbar {
-      padding: 8px 16px 4px;
+      padding: 8px 12px 4px;
       display: flex;
-      gap: 8px;
+      gap: 6px;
       flex-shrink: 0;
       justify-content: center;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
     }
     .btn {
       appearance: none;
@@ -199,10 +394,13 @@
       background: rgba(232,197,106,.08);
       color: var(--cream);
       border-radius: 12px;
-      padding: 8px 12px;
-      font-size: 12px;
+      padding: 8px 6px;
+      font-size: 11px;
+      line-height: 1.2;
       cursor: pointer;
       transition: background .15s, transform .1s;
+      flex: 1;
+      white-space: nowrap;
     }
     .btn:active { transform: scale(0.96); }
     .btn.primary {
@@ -256,7 +454,10 @@
     /* 皮肤面板 / 广告遮罩 */
     .sheet {
       position: absolute;
-      inset: 0;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
       background: rgba(0,0,0,.72);
       z-index: 20;
       display: none;
@@ -266,6 +467,8 @@
     .sheet.show { display: flex; }
     .sheet-card {
       width: 100%;
+      max-height: 74%;
+      overflow-y: auto;
       background: linear-gradient(180deg, #2a1c0e, #1a1208);
       border-radius: 20px 20px 0 0;
       padding: 20px 16px calc(20px + var(--safe-bottom));
@@ -277,29 +480,41 @@
       margin-bottom: 12px;
       text-align: center;
     }
+    .skin-group-label {
+      grid-column: 1 / -1;
+      font-size: 10px;
+      letter-spacing: .22em;
+      color: rgba(245,230,200,.42);
+      margin: 2px 0 0;
+    }
     .skin-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
+      gap: 8px 10px;
       margin-bottom: 14px;
     }
     .skin-opt {
       border: 2px solid transparent;
       border-radius: 14px;
-      padding: 10px 6px;
+      padding: 8px 4px;
       text-align: center;
       background: rgba(255,255,255,.04);
       cursor: pointer;
-      font-size: 12px;
+      font-size: 11px;
       color: var(--cream);
     }
     .skin-opt.selected { border-color: var(--gold); }
     .skin-opt.locked { opacity: .55; }
     .skin-swatch {
-      width: 44px; height: 44px;
-      border-radius: 50%;
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
       margin: 0 auto 6px;
-      box-shadow: inset 0 -4px 8px rgba(0,0,0,.3);
+      overflow: hidden;
+      background: rgba(0,0,0,.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .ad-panel {
       text-align: center;
@@ -328,6 +543,23 @@
       margin-bottom: 10px;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+    .invite-btn {
+      appearance: none;
+      border: none;
+      margin: 6px auto 2px;
+      display: block;
+      padding: 10px 36px;
+      border-radius: 24px;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: .12em;
+      color: #3a2410;
+      cursor: pointer;
+      background: linear-gradient(180deg, #e8c38a, #b07838 55%, #8a5520);
+      box-shadow: 0 6px 16px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.35);
+    }
+    .invite-btn:active { transform: scale(0.97); }
+    .sheet-card .btn { flex: none; }
     .panel-hidden { display: none !important; }
     .mode-panel { width: 100%; display: flex; flex-direction: column; align-items: center; }
   </style>
@@ -335,28 +567,34 @@
 <body>
   <div id="phone">
     <header class="topbar">
-      <div class="brand">电子木鱼<small>原创玩具原型 · 非商业</small></div>
+      <div class="brand">电子木鱼<small>静心小玩具 · 原创</small></div>
       <div class="merit-pill">功德 <strong id="meritTotal">0</strong></div>
     </header>
 
     <main class="stage">
-      <div class="hint" id="modeHint">轻点木鱼 · 积攒功德</div>
+      <div class="hint" id="modeHint">轻点木鱼 · 槌会敲下去</div>
       <div class="float-layer" id="floatLayer"></div>
 
       <!-- 木鱼 -->
       <div class="mode-panel" id="panel-muyu" data-mode="muyu">
         <div class="tap-area" id="tap-muyu" role="button" aria-label="敲木鱼">
-          <div class="instrument hd">
-            <img class="prop-img" id="img-muyu" src="assets/muyu.png" alt="木鱼" width="280" height="280" />
+          <div class="instrument hd stage-muyu premium" id="stage-muyu">
+            <div class="instrument-body">
+              <img class="prop-img layer-body" id="img-muyu" src="assets/skins/muyu-premium-body.png?v=26" alt="木鱼" />
+            </div>
+            <img class="muyu-mallet-img" id="striker-muyu" src="assets/skins/muyu-premium-mallet.png?v=26" alt="" />
+            <div class="hit-flash" id="flash-muyu"></div>
           </div>
         </div>
       </div>
 
       <!-- 念珠 -->
       <div class="mode-panel panel-hidden" id="panel-beads" data-mode="beads">
-        <div class="tap-area" id="tap-beads" role="button" aria-label="拨念珠">
-          <div class="instrument hd" id="beadsRing">
-            <img class="prop-img" id="img-beads" src="assets/beads.png" alt="念珠" width="280" height="280" />
+        <div class="tap-area beads-tap" id="tap-beads" role="slider" aria-label="下滑拨念珠">
+          <div class="instrument hd stage-beads" id="beadsRing">
+            <div class="bead-strand" id="beadStrand">
+              <div class="bead-track" id="beadTrack"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -364,20 +602,27 @@
       <!-- 颂钵 -->
       <div class="mode-panel panel-hidden" id="panel-bowl" data-mode="bowl">
         <div class="tap-area" id="tap-bowl" role="button" aria-label="敲颂钵">
-          <div class="instrument hd" id="bowlInstrument">
-            <img class="prop-img" id="img-bowl" src="assets/bowl.png" alt="颂钵" width="280" height="280" />
+          <div class="instrument hd stage-bowl" id="bowlInstrument">
+            <div class="instrument-body">
+              <img class="prop-img layer-rest" id="img-bowl" src="assets/skins/bowl-brass.png?v=25" alt="颂钵" />
+            </div>
+            <div class="bowl-mallet-wrap" id="striker-bowl-wrap">
+              <img class="bowl-mallet-img" id="striker-bowl" src="assets/skins/bowl-mallet-brass.png?v=25" alt="" />
+            </div>
             <div class="ripple" id="bowlRipple"></div>
+            <div class="hit-flash" id="flash-bowl"></div>
           </div>
         </div>
       </div>
     </main>
 
     <div class="toolbar">
-      <button class="btn" type="button" id="btnSkin">换皮肤</button>
-      <button class="btn primary" type="button" id="btnAdAuto">看广告解锁 · 自动敲</button>
-      <button class="btn" type="button" id="btnAdSkin">看广告解锁 · 皮肤</button>
+      <button class="btn" type="button" id="btnSkin">皮肤</button>
+      <button class="btn primary" type="button" id="btnAdAuto">视频 · 自动敲</button>
+      <button class="btn" type="button" id="btnAdSkin">视频 · 皮肤</button>
     </div>
-    <div class="status-line" id="statusLine">本地演示 · 无真实广告</div>
+    <button class="invite-btn" type="button" id="btnInvite">邀请好友</button>
+    <div class="status-line" id="statusLine">轻点解压 · 数据仅存本机</div>
 
     <nav class="tabs">
       <button class="tab active" type="button" data-tab="muyu"><span class="ico">🪵</span>木鱼</button>
@@ -388,16 +633,25 @@
     <!-- 皮肤选择 -->
     <div class="sheet" id="skinSheet">
       <div class="sheet-card">
-        <h3>选择皮肤</h3>
+        <h3 id="skinSheetTitle">选择皮肤</h3>
         <div class="skin-grid" id="skinGrid"></div>
         <button class="btn" type="button" id="closeSkin" style="width:100%">关闭</button>
       </div>
     </div>
 
-    <!-- 激励视频 Mock -->
+    <!-- 邀请好友 -->
+    <div class="sheet" id="shareSheet">
+      <div class="sheet-card">
+        <h3>邀请好友</h3>
+        <p id="shareHint" style="text-align:center;font-size:13px;color:rgba(245,230,200,.7);margin-bottom:14px;line-height:1.5">把电子木鱼发给朋友，一起敲、一起积功德。</p>
+        <button class="btn primary" type="button" id="btnShareNative" style="width:100%;margin-bottom:8px">系统分享</button>
+        <button class="btn" type="button" id="btnCopyLink" style="width:100%;margin-bottom:8px">复制链接</button>
+        <button class="btn" type="button" id="closeShare" style="width:100%">关闭</button>
+      </div>
+    </div>
     <div class="sheet" id="adSheet">
       <div class="sheet-card ad-panel">
-        <h3 id="adTitle">激励视频（模拟）</h3>
+        <h3 id="adTitle">观看视频解锁</h3>
         <div class="ad-box" id="adBox">
           <div class="spinner" id="adSpinner"></div>
           <div id="adMsg">广告播放中…</div>
@@ -410,30 +664,49 @@
   <script>
 (function () {
   "use strict";
+  if (/miniProgram|MicroMessenger/i.test(navigator.userAgent) || /[?&]from=mp\b/.test(location.search)) {
+    document.documentElement.classList.add("in-mp");
+  }
 
   const STORAGE_KEY = "dianzi-muyu-v1";
   const AUTO_MS = 5 * 60 * 1000;
   const AD_MS = 1500;
 
-  const SKINS = [
-    { id: "amber", name: "琥珀木", primary: "#c4783a", secondary: "#8b4513", highlight: "#e8a85c", free: true },
-    { id: "jade", name: "青玉", primary: "#3d8b6e", secondary: "#1e4d3a", highlight: "#7dcea0", free: true },
-    { id: "inkgold", name: "墨金", primary: "#4a3f2a", secondary: "#1a1510", highlight: "#d4af37", free: false },
-  ];
+  const ASSET_V = "26";
+  const MODE_NAMES = { muyu: "木鱼", beads: "念珠", bowl: "颂钵" };
+  const SKINS = {
+    muyu: [
+      { id: "amber", name: "樟木", free: true, premium: true, body: "muyu-premium-body.png", mallet: "muyu-premium-mallet.png" },
+      { id: "jade", name: "花梨", free: true, premium: true, body: "muyu-premium-jade-body.png", mallet: "muyu-premium-jade-mallet.png" },
+      { id: "inkgold", name: "紫檀", free: false, premium: true, body: "muyu-premium-inkgold-body.png", mallet: "muyu-premium-inkgold-mallet.png" },
+    ],
+    beads: [
+      { id: "wood", name: "檀木", free: true, bead: "bead-wood.png" },
+      { id: "jade", name: "青玉", free: true, bead: "bead-jade.png" },
+      { id: "rosewood", name: "紫檀", free: false, bead: "bead-rosewood.png" },
+    ],
+    bowl: [
+      { id: "brass", name: "黄铜", free: true, body: "bowl-brass.png", mallet: "bowl-mallet-brass.png" },
+      { id: "gold", name: "鎏金", free: true, body: "bowl-gold.png", mallet: "bowl-mallet-gold.png" },
+      { id: "iron", name: "乌金", free: false, body: "bowl-iron.png", mallet: "bowl-mallet-iron.png" },
+    ],
+  };
+  const DEFAULT_SKINS = { muyu: "amber", beads: "wood", bowl: "brass" };
+  const FREE_UNLOCKS = ["muyu-amber", "muyu-jade", "beads-wood", "beads-jade", "bowl-brass", "bowl-gold"];
 
   const FLOAT_TEXTS = {
-    muyu: ["功德+1", "善哉", "阿弥陀佛", "心静"],
-    beads: ["功德+1", "念一句", "清净", "回向"],
-    bowl: ["功德+1", "嗡…", "共鸣", "安住"],
+    muyu: ["功德 +1"],
+    beads: ["功德 +1"],
+    bowl: ["功德 +1"],
   };
 
   const HINTS = {
-    muyu: "轻点木鱼 · 积攒功德",
-    beads: "轻点拨珠 · 一念一功",
-    bowl: "轻点颂钵 · 听声入定",
+    muyu: "轻点木鱼 · 槌从右上敲下去",
+    beads: "往下滑 · 拨过一颗",
+    bowl: "轻点颂钵 · 槌敲钵沿",
   };
 
-  /** @type {{ total: number, muyu: number, beads: number, bowl: number, skin: string, unlockedSkins: string[], autoUntil: number }} */
+  /** @type {{ total: number, muyu: number, beads: number, bowl: number, skins: {muyu:string,beads:string,bowl:string}, unlockedSkins: string[], autoUntil: number }} */
   let state = load();
 
   let mode = "muyu";
@@ -441,9 +714,88 @@
   let autoTimer = null;
   let autoTick = null;
   let beadIndex = 0;
+  const VISIBLE_BEADS = 6;
+  const BEAD_PX = 64;
+  const BEAD_COMMIT = 28;
   let pendingAdReward = null; // 'auto' | 'skin'
+  let lastTapAt = 0;
+  let bowlNodes = [];
+  let noiseBuf = null;
+  let beadBusy = false;
+  const sampleBuf = { muyu: null, beads: null, bowl: null };
+  const sampleRaw = { muyu: null, beads: null, bowl: null };
 
-  // —— Persistence ——
+  function prefetchSamples() {
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!audioCtx && AC) audioCtx = new AC();
+    } catch (_) {}
+    ["muyu", "beads", "bowl"].forEach((k) => {
+      if (sampleRaw[k] || sampleRaw[k] === false) return;
+      fetch("assets/sfx/" + k + ".wav")
+        .then((r) => {
+          if (!r.ok) throw new Error(k);
+          return r.arrayBuffer();
+        })
+        .then((b) => {
+          sampleRaw[k] = b;
+          decodeSample(k);
+        })
+        .catch(() => { sampleRaw[k] = false; });
+    });
+  }
+
+  function decodeSample(kind) {
+    if (!audioCtx || !sampleRaw[kind] || sampleRaw[kind] === false || sampleBuf[kind]) return;
+    const copy = sampleRaw[kind].slice(0);
+    audioCtx.decodeAudioData(copy).then((buf) => {
+      sampleBuf[kind] = buf;
+    }).catch(() => {});
+  }
+
+  function skinKey(kind, id) {
+    return kind + "-" + id;
+  }
+
+  function normalizeSkinId(kind, id) {
+    if (kind === "muyu") {
+      const legacy = { "premium-test": "amber", "premium-jade": "jade", "premium-inkgold": "inkgold" };
+      return legacy[id] || id;
+    }
+    return id;
+  }
+
+  function findSkin(kind, id) {
+    const list = SKINS[kind] || [];
+    const sid = normalizeSkinId(kind, id);
+    return list.find((x) => x.id === sid) || list[0];
+  }
+
+  function isUnlocked(kind, id) {
+    const s = findSkin(kind, id);
+    if (!s) return false;
+    if (s.free) return true;
+    return state.unlockedSkins.includes(skinKey(kind, id));
+  }
+
+  function assetUrl(file) {
+    return "assets/skins/" + file + "?v=" + ASSET_V;
+  }
+
+  function migrateUnlocks(raw) {
+    const src = Array.isArray(raw) ? raw : [];
+    const mapped = src.map((id) => {
+      if (id === "premium-test") return "muyu-amber";
+      if (id === "premium-jade") return "muyu-jade";
+      if (id === "premium-inkgold") return "muyu-inkgold";
+      if (id === "amber" || id === "jade" || id === "inkgold") return "muyu-" + id;
+      if (id === "muyu-premium-test") return "muyu-amber";
+      if (id === "muyu-premium-jade") return "muyu-jade";
+      if (id === "muyu-premium-inkgold") return "muyu-inkgold";
+      return id;
+    });
+    return Array.from(new Set(FREE_UNLOCKS.concat(mapped)));
+  }
   function load() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -454,13 +806,22 @@
           muyu: o.muyu || 0,
           beads: o.beads || 0,
           bowl: o.bowl || 0,
-          skin: o.skin || "amber",
-          unlockedSkins: Array.isArray(o.unlockedSkins) ? o.unlockedSkins : ["amber", "jade"],
+          skins: {
+            muyu: (o.skins && o.skins.muyu) || o.skin || "amber",
+            beads: (o.skins && o.skins.beads) || "wood",
+            bowl: (o.skins && o.skins.bowl) || "brass",
+          },
+          unlockedSkins: migrateUnlocks(o.unlockedSkins),
           autoUntil: o.autoUntil || 0,
         };
       }
     } catch (_) {}
-    return { total: 0, muyu: 0, beads: 0, bowl: 0, skin: "amber", unlockedSkins: ["amber", "jade"], autoUntil: 0 };
+    return {
+      total: 0, muyu: 0, beads: 0, bowl: 0,
+      skins: { muyu: "amber", beads: "wood", bowl: "brass" },
+      unlockedSkins: FREE_UNLOCKS.slice(),
+      autoUntil: 0,
+    };
   }
   function save() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -473,66 +834,112 @@
       if (AC) audioCtx = new AC();
     }
     if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+    if (audioCtx && !noiseBuf) {
+      const n = audioCtx.sampleRate * 0.2;
+      noiseBuf = audioCtx.createBuffer(1, n, audioCtx.sampleRate);
+      const data = noiseBuf.getChannelData(0);
+      for (let i = 0; i < n; i++) data[i] = Math.random() * 2 - 1;
+    }
+    ["muyu", "beads", "bowl"].forEach(decodeSample);
+  }
+
+  function playNoise(duration, gain0, hpFreq) {
+    if (!audioCtx || !noiseBuf) return;
+    const t0 = audioCtx.currentTime;
+    const src = audioCtx.createBufferSource();
+    src.buffer = noiseBuf;
+    const hp = audioCtx.createBiquadFilter();
+    hp.type = "highpass";
+    hp.frequency.value = hpFreq || 400;
+    const g = audioCtx.createGain();
+    src.connect(hp);
+    hp.connect(g);
+    g.connect(audioCtx.destination);
+    g.gain.setValueAtTime(gain0, t0);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + duration);
+    src.start(t0);
+    src.stop(t0 + duration);
   }
 
   function playTone(kind) {
     ensureAudio();
     if (!audioCtx) return;
-    const t0 = audioCtx.currentTime;
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
+    decodeSample(kind);
+    const buf = sampleBuf[kind];
+    if (buf) {
+      if (kind === "bowl") {
+        bowlNodes.forEach((n) => { try { n.stop(); } catch (_) {} });
+        bowlNodes = [];
+      }
+      const src = audioCtx.createBufferSource();
+      const g = audioCtx.createGain();
+      src.buffer = buf;
+      g.gain.value = kind === "beads" ? 0.72 : kind === "muyu" ? 0.9 : 0.8;
+      src.connect(g);
+      g.connect(audioCtx.destination);
+      src.start();
+      if (kind === "bowl") bowlNodes = [src];
+      return;
+    }
+    playSynthFallback(kind);
+  }
 
+  function playSynthFallback(kind) {
+    const t0 = audioCtx.currentTime;
     if (kind === "muyu") {
-      osc.type = "triangle";
-      osc.frequency.setValueAtTime(180, t0);
-      osc.frequency.exponentialRampToValueAtTime(90, t0 + 0.12);
-      gain.gain.setValueAtTime(0.35, t0);
-      gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.18);
-      osc.start(t0);
-      osc.stop(t0 + 0.2);
+      playNoise(0.04, 0.32, 1600);
+      playNoise(0.07, 0.12, 400);
     } else if (kind === "beads") {
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(520 + beadIndex * 12, t0);
-      gain.gain.setValueAtTime(0.18, t0);
-      gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.08);
-      osc.start(t0);
-      osc.stop(t0 + 0.09);
+      playNoise(0.025, 0.2, 2200);
     } else {
-      // bowl — soft bellish
+      bowlNodes.forEach((n) => { try { n.stop(); } catch (_) {} });
+      bowlNodes = [];
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
       osc.type = "sine";
-      osc.frequency.setValueAtTime(440, t0);
-      osc.frequency.exponentialRampToValueAtTime(220, t0 + 0.8);
-      gain.gain.setValueAtTime(0.28, t0);
-      gain.gain.exponentialRampToValueAtTime(0.001, t0 + 1.0);
+      osc.frequency.value = 242;
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.exponentialRampToValueAtTime(0.28, t0 + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.001, t0 + 1.7);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
       osc.start(t0);
-      osc.stop(t0 + 1.05);
-      // harmonic
-      const osc2 = audioCtx.createOscillator();
-      const g2 = audioCtx.createGain();
-      osc2.type = "sine";
-      osc2.frequency.setValueAtTime(660, t0);
-      osc2.connect(g2);
-      g2.connect(audioCtx.destination);
-      g2.gain.setValueAtTime(0.12, t0);
-      g2.gain.exponentialRampToValueAtTime(0.001, t0 + 0.7);
-      osc2.start(t0);
-      osc2.stop(t0 + 0.75);
+      osc.stop(t0 + 1.75);
+      bowlNodes = [osc];
     }
   }
 
   // —— UI helpers ——
-  function applySkin(id) {
-    const s = SKINS.find((x) => x.id === id) || SKINS[0];
-    state.skin = s.id;
-    document.documentElement.style.setProperty("--skin-primary", s.primary);
-    document.documentElement.style.setProperty("--skin-secondary", s.secondary);
-    document.documentElement.style.setProperty("--skin-highlight", s.highlight);
-    document.body.classList.remove("skin-amber", "skin-jade", "skin-inkgold");
-    document.body.classList.add("skin-" + (s.id === "inkgold" ? "inkgold" : s.id));
+  function applySkin(kind, id) {
+    const s = findSkin(kind, id);
+    if (!s) return;
+    state.skins[kind] = s.id;
+    if (kind === "muyu") {
+      const body = document.getElementById("img-muyu");
+      const mallet = document.getElementById("striker-muyu");
+      const stage = document.getElementById("stage-muyu");
+      if (body) body.src = assetUrl(s.body);
+      if (mallet) mallet.src = assetUrl(s.mallet);
+      if (stage) stage.classList.toggle("premium", !!s.premium);
+    } else if (kind === "beads") {
+      document.documentElement.style.setProperty("--bead-url", 'url("' + assetUrl(s.bead) + '")');
+    } else if (kind === "bowl") {
+      const body = document.getElementById("img-bowl");
+      const mallet = document.getElementById("striker-bowl");
+      if (body) body.src = assetUrl(s.body);
+      if (mallet) {
+        mallet.src = assetUrl(s.mallet);
+        mallet.classList.toggle("mallet-flip", s.id === "brass");
+      }
+    }
     save();
     renderSkinGrid();
+  }
+
+  function applyAllSkins() {
+    applySkin("muyu", state.skins.muyu);
+    applySkin("beads", state.skins.beads);
+    applySkin("bowl", state.skins.bowl);
   }
 
   function updateMerit() {
@@ -553,12 +960,68 @@
     setTimeout(() => el.remove(), 1000);
   }
 
-  function buildBeads() { /* HD 图 */ }
-  function highlightBead() {
-    const img = document.getElementById("img-beads");
-    if (!img) return;
-    img.style.transform = "scale(1.06)";
-    setTimeout(() => { img.style.transform = ""; }, 120);
+  function buildBeads() {
+    const track = document.getElementById("beadTrack");
+    if (!track) return;
+    track.innerHTML = "";
+    for (let i = 0; i < VISIBLE_BEADS + 2; i++) {
+      const d = document.createElement("div");
+      d.className = "bead";
+      d.style.transform = "rotate(" + ((i * 41) % 360) + "deg)";
+      track.appendChild(d);
+    }
+  }
+
+  function recycleBead() {
+    const track = document.getElementById("beadTrack");
+    if (!track) return;
+    const last = track.lastElementChild;
+    if (last) {
+      last.style.transform = "rotate(" + Math.floor(Math.random() * 360) + "deg)";
+      track.insertBefore(last, track.firstChild);
+    }
+  }
+
+  function commitBeadSlide() {
+    beadIndex = (beadIndex + 1) % 108;
+    recycleBead();
+    ensureAudio();
+    state.total += 1;
+    state.beads = (state.beads || 0) + 1;
+    save();
+    updateMerit();
+    floatText("beads");
+    playTone("beads");
+    try { if (navigator.vibrate) navigator.vibrate(12); } catch (_) {}
+  }
+
+  function flickBeads() {
+    const track = document.getElementById("beadTrack");
+    if (!track || beadBusy) return;
+    beadBusy = true;
+    track.classList.add("dropping");
+    track.style.transform = "translateY(" + BEAD_PX + "px)";
+    window.setTimeout(() => {
+      recycleBead();
+      track.classList.remove("dropping");
+      track.style.transition = "none";
+      track.style.transform = "translateY(0)";
+      void track.offsetWidth;
+      track.style.transition = "";
+      beadBusy = false;
+    }, 200);
+  }
+
+  function restartAnim(el, cls) {
+    if (!el) return;
+    el.classList.remove(cls);
+    void el.offsetWidth;
+    el.classList.add(cls);
+    const done = () => {
+      el.classList.remove(cls);
+      el.removeEventListener("animationend", done);
+    };
+    el.addEventListener("animationend", done);
   }
 
   function doTap(fromAuto) {
@@ -569,24 +1032,27 @@
     updateMerit();
     floatText(mode);
     playTone(mode);
+    try { if (navigator.vibrate) navigator.vibrate(18); } catch (_) {}
 
     const area = document.getElementById(
       mode === "muyu" ? "tap-muyu" : mode === "beads" ? "tap-beads" : "tap-bowl"
     );
-    if (area) {
-      area.classList.add("squash");
-      setTimeout(() => area.classList.remove("squash"), 100);
+    if (area && mode !== "beads") {
+      restartAnim(area.querySelector(".instrument-body"), "hit");
     }
 
+    if (mode === "muyu") {
+      restartAnim(document.getElementById("striker-muyu"), "swing");
+      restartAnim(document.getElementById("flash-muyu"), "pop");
+    }
     if (mode === "beads") {
-      beadIndex = (beadIndex + 1) % 12;
-      highlightBead();
+      beadIndex = (beadIndex + 1) % 108;
+      flickBeads();
     }
     if (mode === "bowl") {
-      const rip = document.getElementById("bowlRipple");
-      rip.classList.remove("play");
-      void rip.offsetWidth;
-      rip.classList.add("play");
+      restartAnim(document.getElementById("striker-bowl-wrap"), "swing");
+      restartAnim(document.getElementById("flash-bowl"), "pop");
+      restartAnim(document.getElementById("bowlRipple"), "play");
     }
   }
 
@@ -599,6 +1065,10 @@
     document.getElementById("panel-beads").classList.toggle("panel-hidden", next !== "beads");
     document.getElementById("panel-bowl").classList.toggle("panel-hidden", next !== "bowl");
     document.getElementById("modeHint").textContent = HINTS[next];
+    const btn = document.getElementById("btnSkin");
+    if (btn) btn.textContent = MODE_NAMES[next] + "皮肤";
+    document.getElementById("skinSheetTitle").textContent = "选择" + MODE_NAMES[next] + "皮肤";
+    renderSkinGrid();
   }
 
   // —— Auto tap ——
@@ -617,7 +1087,7 @@
       line.classList.add("on");
       document.getElementById("btnAdAuto").disabled = true;
     } else {
-      line.textContent = "本地演示 · 无真实广告 · 数据存 localStorage";
+      line.textContent = "轻点解压 · 数据仅存本机";
       line.classList.remove("on");
       document.getElementById("btnAdAuto").disabled = false;
       if (autoTick) {
@@ -651,19 +1121,17 @@
     startAutoIfNeeded();
   }
 
+  function firstLockedSkin() {
+    return (SKINS[mode] || []).find((s) => !isUnlocked(mode, s.id));
+  }
+
   function grantSkin() {
-    const locked = SKINS.find((s) => !s.free && !state.unlockedSkins.includes(s.id));
-    if (locked) {
-      if (!state.unlockedSkins.includes(locked.id)) {
-        state.unlockedSkins.push(locked.id);
-        save();
-      }
-      applySkin(locked.id);
-    } else {
-      // already unlocked — re-apply ink gold
-      applySkin("inkgold");
+    const pick = firstLockedSkin();
+    if (!pick) return;
+    if (!isUnlocked(mode, pick.id)) {
+      state.unlockedSkins.push(skinKey(mode, pick.id));
     }
-    renderSkinGrid();
+    applySkin(mode, pick.id);
   }
 
   // —— Mock ad ——
@@ -674,7 +1142,7 @@
     const btn = document.getElementById("adClose");
     const spinner = document.getElementById("adSpinner");
     document.getElementById("adTitle").textContent =
-      reward === "auto" ? "解锁自动敲击（模拟广告）" : "解锁皮肤（模拟广告）";
+      reward === "auto" ? "观看视频解锁自动敲击" : "观看视频解锁皮肤";
     msg.textContent = "广告播放中…";
     spinner.style.display = "block";
     btn.disabled = true;
@@ -699,39 +1167,121 @@
   // —— Skin sheet ——
   function renderSkinGrid() {
     const grid = document.getElementById("skinGrid");
+    if (!grid) return;
     grid.innerHTML = "";
-    SKINS.forEach((s) => {
-      const unlocked = s.free || state.unlockedSkins.includes(s.id);
-      const div = document.createElement("button");
-      div.type = "button";
-      div.className = "skin-opt" + (state.skin === s.id ? " selected" : "") + (!unlocked ? " locked" : "");
-      div.innerHTML =
-        `<div class="skin-swatch" style="background:radial-gradient(circle at 35% 30%,${s.highlight},${s.primary} 55%,${s.secondary})"></div>` +
-        `${s.name}${unlocked ? "" : "<br><small>需解锁</small>"}`;
-      div.addEventListener("click", () => {
-        if (!unlocked) {
-          document.getElementById("skinSheet").classList.remove("show");
-          showAd("skin");
-          return;
-        }
-        applySkin(s.id);
+    const list = SKINS[mode] || [];
+    const current = state.skins[mode];
+    const groups = [{ label: "", items: list }];
+    groups.forEach((grp) => {
+      if (grp.label) {
+        const lab = document.createElement("div");
+        lab.className = "skin-group-label";
+        lab.textContent = grp.label;
+        grid.appendChild(lab);
+      }
+      grp.items.forEach((s) => {
+        const unlocked = isUnlocked(mode, s.id);
+        const thumb = s.body || s.bead || s.mallet;
+        const div = document.createElement("button");
+        div.type = "button";
+        div.className = "skin-opt" + (current === s.id ? " selected" : "") + (!unlocked ? " locked" : "");
+        div.innerHTML =
+          `<div class="skin-swatch"><img src="${assetUrl(thumb)}" alt=""></div>` +
+          `${s.name}${unlocked ? "" : "<br><small>需解锁</small>"}`;
+        div.addEventListener("click", () => {
+          if (!unlocked) {
+            document.getElementById("skinSheet").classList.remove("show");
+            showAd("skin");
+            return;
+          }
+          applySkin(mode, s.id);
+        });
+        grid.appendChild(div);
       });
-      grid.appendChild(div);
     });
   }
 
   // —— Bind ——
   function bindTap(el) {
-    const fire = (e) => {
+    el.addEventListener("pointerdown", (e) => {
+      if (e.pointerType === "mouse" && e.button !== 0) return;
       e.preventDefault();
+      const now = performance.now();
+      if (now - lastTapAt < 90) return;
+      lastTapAt = now;
       doTap(false);
-    };
-    el.addEventListener("pointerdown", fire);
+    });
+  }
+
+  function bindBeadSwipe(el) {
+    let dragging = false;
+    let lastY = 0;
+    let acc = 0;
+    let pointerId = null;
+
+    function setOffset(y) {
+      const track = document.getElementById("beadTrack");
+      if (!track) return;
+      track.classList.remove("dropping");
+      track.style.transition = "none";
+      track.style.transform = "translateY(" + y + "px)";
+    }
+
+    function snapHome() {
+      const track = document.getElementById("beadTrack");
+      if (!track) return;
+      track.classList.add("dropping");
+      track.style.transition = "transform .16s cubic-bezier(.2, .85, .25, 1)";
+      track.style.transform = "translateY(0)";
+      window.setTimeout(() => {
+        track.classList.remove("dropping");
+        track.style.transition = "";
+      }, 180);
+    }
+
+    el.addEventListener("pointerdown", (e) => {
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      if (beadBusy) return;
+      e.preventDefault();
+      ensureAudio();
+      dragging = true;
+      pointerId = e.pointerId;
+      lastY = e.clientY;
+      acc = 0;
+      try { el.setPointerCapture(e.pointerId); } catch (_) {}
+    });
+
+    el.addEventListener("pointermove", (e) => {
+      if (!dragging || e.pointerId !== pointerId) return;
+      const dy = e.clientY - lastY;
+      lastY = e.clientY;
+      if (dy > 0) acc += dy;
+      else acc = Math.max(0, acc + dy * 0.25);
+      while (acc >= BEAD_PX) {
+        acc -= BEAD_PX;
+        commitBeadSlide();
+      }
+      setOffset(acc);
+    });
+
+    function endDrag(e) {
+      if (!dragging) return;
+      if (e && pointerId != null && e.pointerId !== pointerId) return;
+      dragging = false;
+      pointerId = null;
+      if (acc >= BEAD_COMMIT) commitBeadSlide();
+      acc = 0;
+      snapHome();
+    }
+
+    el.addEventListener("pointerup", endDrag);
+    el.addEventListener("pointercancel", endDrag);
   }
 
   bindTap(document.getElementById("tap-muyu"));
-  bindTap(document.getElementById("tap-beads"));
+  bindBeadSwipe(document.getElementById("tap-beads"));
   bindTap(document.getElementById("tap-bowl"));
+  document.getElementById("phone").addEventListener("pointerdown", ensureAudio, { passive: true });
 
   document.querySelectorAll(".tab").forEach((t) => {
     t.addEventListener("click", () => setMode(t.dataset.tab));
@@ -748,13 +1298,54 @@
     if (e.target.id === "skinSheet") e.currentTarget.classList.remove("show");
   });
 
+  document.getElementById("btnInvite").addEventListener("click", () => {
+    document.getElementById("shareSheet").classList.add("show");
+    document.getElementById("shareHint").textContent = "把电子木鱼发给朋友，一起敲、一起积功德。";
+  });
+  document.getElementById("closeShare").addEventListener("click", () => {
+    document.getElementById("shareSheet").classList.remove("show");
+  });
+  document.getElementById("shareSheet").addEventListener("click", (e) => {
+    if (e.target.id === "shareSheet") e.currentTarget.classList.remove("show");
+  });
+  document.getElementById("btnShareNative").addEventListener("click", async () => {
+    const payload = {
+      title: "电子木鱼",
+      text: "来一起敲木鱼积功德",
+      url: location.href.split("#")[0],
+    };
+    try {
+      if (navigator.share) {
+        await navigator.share(payload);
+        document.getElementById("shareSheet").classList.remove("show");
+        return;
+      }
+    } catch (_) {}
+    document.getElementById("btnCopyLink").click();
+  });
+  document.getElementById("btnCopyLink").addEventListener("click", async () => {
+    const url = location.href.split("#")[0];
+    try {
+      await navigator.clipboard.writeText(url);
+      document.getElementById("shareHint").textContent = "链接已复制，发给微信好友即可。";
+    } catch (_) {
+      window.prompt("复制这个链接发给朋友", url);
+    }
+  });
   document.getElementById("btnAdAuto").addEventListener("click", () => showAd("auto"));
-  document.getElementById("btnAdSkin").addEventListener("click", () => showAd("skin"));
+  document.getElementById("btnAdSkin").addEventListener("click", () => {
+    if (!firstLockedSkin()) {
+      alert("当前模式皮肤已全部解锁");
+      return;
+    }
+    showAd("skin");
+  });
   document.getElementById("adClose").addEventListener("click", finishAd);
 
   // init
+  prefetchSamples();
   buildBeads();
-  applySkin(state.skin);
+  applyAllSkins();
   updateMerit();
   const bootTab = (new URLSearchParams(location.search).get("tab") || location.hash.replace("#","") || "muyu");
   setMode(["muyu","beads","bowl"].includes(bootTab) ? bootTab : "muyu");

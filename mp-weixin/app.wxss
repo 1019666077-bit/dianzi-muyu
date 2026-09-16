@@ -1,0 +1,6 @@
+page {
+  height: 100%;
+  background: #0d0a06;
+  color: #f5e6c8;
+  font-family: "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+}

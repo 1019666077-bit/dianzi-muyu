@@ -1,0 +1,4 @@
+{
+  "desc": "电子木鱼",
+  "rules": [{ "action": "allow", "page": "*" }]
+}

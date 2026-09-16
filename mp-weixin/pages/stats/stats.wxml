@@ -1,0 +1,76 @@
+<view class="page">
+  <view class="topbar" style="padding-top: {{statusPad}}px;">
+    <view class="back" bindtap="goBack">
+      <text class="back-arrow">‹</text>
+      <text>返回</text>
+    </view>
+    <text class="title" bindtap="onTitleTap">功德数据</text>
+    <view class="topbar-spacer"></view>
+  </view>
+
+  <view wx:if="{{streakDays > 0}}" class="streak-banner">
+    <text>已连续 {{streakDays}} 天</text>
+  </view>
+
+  <view class="list">
+    <view class="row">
+      <text class="label">本次功德</text>
+      <text class="value">{{sessionMerit}}</text>
+    </view>
+    <view class="row">
+      <text class="label">今日功德</text>
+      <text class="value">{{todayMerit}}</text>
+    </view>
+    <view class="row">
+      <text class="label">昨日功德</text>
+      <text class="value">{{yesterdayMerit}}</text>
+    </view>
+    <view class="row row-total">
+      <text class="label">总功德</text>
+      <text class="value">{{total}}</text>
+    </view>
+  </view>
+  <text wx:if="{{gapHint}}" class="gap-hint">{{gapHint}}</text>
+
+  <view wx:if="{{showSceneDebug}}" class="list list-sub scene-debug">
+    <view class="row">
+      <text class="label">本周起始</text>
+      <text class="value">{{sceneWeek}}</text>
+    </view>
+    <view class="row">
+      <text class="label">1089 任务栏</text>
+      <text class="value">{{scene1089}}</text>
+    </view>
+    <view class="row">
+      <text class="label">1036 分享</text>
+      <text class="value">{{scene1036}}</text>
+    </view>
+    <view class="row">
+      <text class="label">1053 搜一搜</text>
+      <text class="value">{{scene1053}}</text>
+    </view>
+    <view class="row">
+      <text class="label">其他场景</text>
+      <text class="value">{{sceneOther}}</text>
+    </view>
+  </view>
+
+  <text class="section-label">分模式累计</text>
+  <view class="list list-sub">
+    <view class="row">
+      <text class="label">木鱼</text>
+      <text class="value">{{muyu}}</text>
+    </view>
+    <view class="row">
+      <text class="label">念珠</text>
+      <text class="value">{{beads}}</text>
+    </view>
+    <view class="row">
+      <text class="label">颂钵</text>
+      <text class="value">{{bowl}}</text>
+    </view>
+  </view>
+
+  <button class="btn" bindtap="onResetSession">重置本次功德</button>
+  <button class="btn danger" bindtap="onResetAll">清空全部功德</button>
+</view>

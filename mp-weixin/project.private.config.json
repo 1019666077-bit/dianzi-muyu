@@ -1,0 +1,10 @@
+{
+  "description": "将 appid 改为你的正式 wx********。开发者工具会用本文件覆盖 project.config.json 的 touristappid。勿写入 AppSecret。提审前必须改这里的 appid。",
+  "appid": "touristappid",
+  "libVersion": "3.8.12",
+  "projectname": "dianzi-muyu",
+  "setting": {
+    "urlCheck": false,
+    "compileHotReLoad": true
+  }
+}
