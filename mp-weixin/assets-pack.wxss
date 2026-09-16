@@ -1,0 +1,39 @@
+/* 完整本地路径，供上传依赖分析打进代码包。
+   皮肤 src 走 JS 绑定，不写在这里真机预览/体验版会丢图。 */
+.pack-keep-bg { background-image: url("/assets/bg-zen.jpg"); }
+.pack-keep-share { background-image: url("/assets/share-cover.jpg"); }
+.pack-keep-rail-data { background-image: url("/assets/ui/rail-data.png"); }
+.pack-keep-rail-reset { background-image: url("/assets/ui/rail-reset.png"); }
+.pack-keep-rail-auto { background-image: url("/assets/ui/rail-auto.png"); }
+
+.pack-keep-muyu-amber-body { background-image: url("/assets/skins/premium/muyu-premium-body.png"); }
+.pack-keep-muyu-amber-shade { background-image: url("/assets/skins/premium/muyu-premium-shade.png"); }
+.pack-keep-muyu-amber-spec { background-image: url("/assets/skins/premium/muyu-premium-spec.png"); }
+.pack-keep-muyu-amber-ground { background-image: url("/assets/skins/premium/muyu-premium-ground.png"); }
+.pack-keep-muyu-amber-rim { background-image: url("/assets/skins/premium/muyu-premium-rim.png"); }
+.pack-keep-muyu-amber-mallet { background-image: url("/assets/skins/premium/muyu-premium-mallet.png"); }
+
+.pack-keep-muyu-jade-body { background-image: url("/assets/skins/premium/muyu-premium-jade-body.png"); }
+.pack-keep-muyu-jade-shade { background-image: url("/assets/skins/premium/muyu-premium-jade-shade.png"); }
+.pack-keep-muyu-jade-spec { background-image: url("/assets/skins/premium/muyu-premium-jade-spec.png"); }
+.pack-keep-muyu-jade-ground { background-image: url("/assets/skins/premium/muyu-premium-jade-ground.png"); }
+.pack-keep-muyu-jade-rim { background-image: url("/assets/skins/premium/muyu-premium-jade-rim.png"); }
+.pack-keep-muyu-jade-mallet { background-image: url("/assets/skins/premium/muyu-premium-jade-mallet.png"); }
+
+.pack-keep-muyu-inkgold-body { background-image: url("/assets/skins/premium/muyu-premium-inkgold-body.png"); }
+.pack-keep-muyu-inkgold-shade { background-image: url("/assets/skins/premium/muyu-premium-inkgold-shade.png"); }
+.pack-keep-muyu-inkgold-spec { background-image: url("/assets/skins/premium/muyu-premium-inkgold-spec.png"); }
+.pack-keep-muyu-inkgold-ground { background-image: url("/assets/skins/premium/muyu-premium-inkgold-ground.png"); }
+.pack-keep-muyu-inkgold-rim { background-image: url("/assets/skins/premium/muyu-premium-inkgold-rim.png"); }
+.pack-keep-muyu-inkgold-mallet { background-image: url("/assets/skins/premium/muyu-premium-inkgold-mallet.png"); }
+
+.pack-keep-bead-wood { background-image: url("/assets/skins/bead-wood.png"); }
+.pack-keep-bead-jade { background-image: url("/assets/skins/bead-jade.png"); }
+.pack-keep-bead-rosewood { background-image: url("/assets/skins/bead-rosewood.png"); }
+
+.pack-keep-bowl-brass { background-image: url("/assets/skins/bowl-brass.png"); }
+.pack-keep-bowl-gold { background-image: url("/assets/skins/bowl-gold.png"); }
+.pack-keep-bowl-iron { background-image: url("/assets/skins/bowl-iron.png"); }
+.pack-keep-bowl-mallet-brass { background-image: url("/assets/skins/bowl-mallet-brass.png"); }
+.pack-keep-bowl-mallet-gold { background-image: url("/assets/skins/bowl-mallet-gold.png"); }
+.pack-keep-bowl-mallet-iron { background-image: url("/assets/skins/bowl-mallet-iron.png"); }

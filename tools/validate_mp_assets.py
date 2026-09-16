@@ -1,36 +1,121 @@
-"""Check mp-weixin skin/sfx paths referenced in index.js exist."""
+"""Check mp-weixin skin/sfx paths exist and will pack into upload."""
+import json
 import os
 import re
+import sys
 
 ROOT = os.path.join(os.path.dirname(os.path.dirname(__file__)), "mp-weixin")
 JS = os.path.join(ROOT, "pages", "index", "index.js")
-text = open(JS, encoding="utf-8").read()
-webps = re.findall(r'"(?:premium/)?[^"]+\.webp"', text)
-webps = [w.strip('"') for w in webps]
-missing = []
-for p in webps:
-    if p.startswith("/"):
-        fp = os.path.join(ROOT, p.lstrip("/").replace("/", os.sep))
+ASSETS_JS = os.path.join(ROOT, "config", "assets.js")
+CFG = os.path.join(ROOT, "project.config.json")
+PAGE_EXTS = (".js", ".wxml", ".wxss", ".json")
+
+PATH_RE = re.compile(r"""["'](/assets/[^"']+)["']""")
+CONCAT_RE = re.compile(r"""["']/assets/[^"']*["']\s*\+""")
+
+
+def fail(msg):
+    print("FAIL:", msg)
+    return 1
+
+
+def load_json(path):
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def iter_source_files():
+    for dp, _, fs in os.walk(ROOT):
+        if os.path.basename(dp) in ("scripts", "branding"):
+            continue
+        for name in fs:
+            if name.endswith(PAGE_EXTS) or name.endswith(".wxss"):
+                yield os.path.join(dp, name)
+
+
+def collect_declared_paths():
+    found = []
+    for fp in iter_source_files():
+        text = open(fp, encoding="utf-8").read()
+        for m in PATH_RE.findall(text):
+            found.append((m, os.path.relpath(fp, ROOT)))
+    return found
+
+
+def main():
+    rc = 0
+    missing = []
+
+    cfg = load_json(CFG)
+    setting = cfg.get("setting") or {}
+    if setting.get("ignoreUploadUnusedFiles") is not False:
+        rc = fail("project.config.json setting.ignoreUploadUnusedFiles must be false")
+    if setting.get("ignoreDevUnusedFiles") is not False:
+        rc = fail("project.config.json setting.ignoreDevUnusedFiles must be false")
+
+    pack = cfg.get("packOptions") or {}
+    includes = {(x.get("type"), x.get("value")) for x in pack.get("include") or []}
+    for need in (
+        ("folder", "assets/skins"),
+        ("folder", "assets/sfx"),
+        ("folder", "assets/ui"),
+        ("file", "assets/bg-zen.jpg"),
+        ("file", "assets/share-cover.jpg"),
+    ):
+        if need not in includes:
+            rc = fail("packOptions.include missing %s:%s" % need)
+
+    js = open(JS, encoding="utf-8").read()
+    assets_js = open(ASSETS_JS, encoding="utf-8").read()
+    if "function asset(" in js or CONCAT_RE.search(js) or CONCAT_RE.search(assets_js):
+        rc = fail("dynamic /assets/ path concatenation is not allowed (upload packer drops files)")
+    if ".webp" in js or ".webp" in assets_js:
+        rc = fail("runtime code still references .webp (use png/jpg)")
+
+    declared = collect_declared_paths()
+    if not declared:
+        rc = fail("no /assets/ paths found in mp-weixin source")
+
+    seen = set()
+    for rel_url, src in declared:
+        if rel_url in seen:
+            continue
+        seen.add(rel_url)
+        if rel_url.endswith(".webp"):
+            rc = fail("webp reference in %s: %s" % (src, rel_url))
+        fp = os.path.join(ROOT, rel_url.lstrip("/").replace("/", os.sep))
+        if not os.path.isfile(fp):
+            missing.append("%s (from %s)" % (rel_url, src))
+
+    share = os.path.join(ROOT, "assets", "share-cover.jpg")
+    if os.path.isfile(share):
+        cover_kb = os.path.getsize(share) / 1024.0
+        print("share-cover.jpg KB:", round(cover_kb, 1))
+        if cover_kb > 128:
+            missing.append("share-cover.jpg>128KB")
     else:
-        fp = os.path.join(ROOT, "assets", "skins", p.replace("/", os.sep))
-    if not os.path.isfile(fp):
-        missing.append(p)
-for sfx in ("muyu.wav", "beads.wav", "bowl.wav"):
-    if not os.path.isfile(os.path.join(ROOT, "assets", "sfx", sfx)):
-        missing.append("sfx/" + sfx)
-if not os.path.isfile(os.path.join(ROOT, "assets", "bg-zen.webp")):
-    missing.append("bg-zen.webp")
-share_cover = os.path.join(ROOT, "assets", "share-cover.webp")
-if not os.path.isfile(share_cover):
-    missing.append("share-cover.webp")
-else:
-    cover_kb = os.path.getsize(share_cover) / 1024.0
-    print("share-cover.webp KB:", round(cover_kb, 1))
-    if cover_kb > 128:
-        missing.append("share-cover.webp>128KB")
-size = 0
-for dp, _, fs in os.walk(ROOT):
-    for f in fs:
-        size += os.path.getsize(os.path.join(dp, f))
-print("missing:", missing or "none")
-print("mp-weixin total MB:", round(size / 1024 / 1024, 2))
+        missing.append("share-cover.jpg")
+
+    packed_size = 0
+    for dp, _, fs in os.walk(ROOT):
+        rel = os.path.relpath(dp, ROOT)
+        if rel.startswith("assets" + os.sep + "branding") or rel.startswith("scripts"):
+            continue
+        for f in fs:
+            if f.endswith(".md") or f.endswith(".webp"):
+                continue
+            packed_size += os.path.getsize(os.path.join(dp, f))
+
+    if missing:
+        rc = fail("missing: " + ", ".join(missing))
+    else:
+        print("missing: none")
+        print("declared local assets:", len(seen))
+    print("mp-weixin packed estimate MB:", round(packed_size / 1024 / 1024, 2))
+    if packed_size > 2 * 1024 * 1024:
+        rc = fail("packed estimate exceeds 2MB main-package limit")
+    return rc
+
+
+if __name__ == "__main__":
+    sys.exit(main())

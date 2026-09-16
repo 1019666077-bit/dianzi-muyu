@@ -1,8 +1,19 @@
 {
   "description": "电子木鱼",
   "packOptions": {
-    "ignore": [],
-    "include": []
+    "ignore": [
+      { "type": "folder", "value": "assets/branding" },
+      { "type": "folder", "value": "scripts" },
+      { "type": "suffix", "value": ".md" },
+      { "type": "suffix", "value": ".webp" }
+    ],
+    "include": [
+      { "type": "folder", "value": "assets/skins" },
+      { "type": "folder", "value": "assets/sfx" },
+      { "type": "folder", "value": "assets/ui" },
+      { "type": "file", "value": "assets/bg-zen.jpg" },
+      { "type": "file", "value": "assets/share-cover.jpg" }
+    ]
   },
   "setting": {
     "urlCheck": true,
@@ -24,7 +35,8 @@
       "disablePlugins": [],
       "outputPath": ""
     },
-    "ignoreUploadUnusedFiles": true,
+    "ignoreUploadUnusedFiles": false,
+    "ignoreDevUnusedFiles": false,
     "minifyWXML": true
   },
   "compileType": "miniprogram",

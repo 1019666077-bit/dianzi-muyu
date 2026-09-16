@@ -1,5 +1,5 @@
 <view class="phone">
-  <image class="bg-img" src="/assets/bg-zen.webp" mode="aspectFill" />
+  <image class="bg-img" src="/assets/bg-zen.jpg" mode="aspectFill" />
   <view class="veil"></view>
 
   <view class="topbar" style="padding-top: {{statusPad}}px;">
@@ -19,15 +19,15 @@
   <view class="stage">
     <view class="side-rail">
       <view class="rail-item" bindtap="openStats">
-        <image class="rail-ico" src="/assets/ui/rail-data.webp" mode="aspectFit" />
+        <image class="rail-ico" src="/assets/ui/rail-data.png" mode="aspectFit" />
         <text class="rail-label">数据</text>
       </view>
       <view class="rail-item" bindtap="onRailResetSession">
-        <image class="rail-ico" src="/assets/ui/rail-reset.webp" mode="aspectFit" />
+        <image class="rail-ico" src="/assets/ui/rail-reset.png" mode="aspectFit" />
         <text class="rail-label">重置</text>
       </view>
       <view class="rail-item {{autoOn || slowAutoOn ? 'active' : ''}}" bindtap="onRailAuto">
-        <image class="rail-ico" src="/assets/ui/rail-auto.webp" mode="aspectFit" />
+        <image class="rail-ico" src="/assets/ui/rail-auto.png" mode="aspectFit" />
         <text class="rail-label">自动</text>
       </view>
     </view>
