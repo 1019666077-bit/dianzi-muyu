@@ -227,11 +227,10 @@ Page({
         title: "自动敲",
         content: "当前为视频快敲。可关闭快敲，或使用底部「自动敲」开启免费慢敲。",
         confirmText: "关闭快敲",
-        cancelText: "慢敲开关",
+        cancelText: "取消",
         confirmColor: "#c9a227",
         success: (res) => {
           if (res.confirm) this.stopFastAuto();
-          else this.onToggleSlowAuto();
         },
       });
       return;
@@ -587,6 +586,9 @@ Page({
   updateAutoStatus() {
     const left = this.autoRemaining();
     const fast = left > 0;
+    merit.normalizeAdQuota(this.state);
+    const cap = merit.AD_AUTO_DAILY_MAX;
+    const remainingFast = Math.max(0, cap - (this.state.adGrantAutoCount || 0));
     if (fast) {
       const sec = Math.ceil(left / 1000);
       const m = Math.floor(sec / 60);
@@ -598,22 +600,30 @@ Page({
         status: "视频快敲中 · 剩余 " + m + ":" + String(s).padStart(2, "0"),
       });
     } else if (this.slowAutoOn) {
+      let slowStatus = "自动慢敲中 · 可点「视频·快敲」加速";
+      if (remainingFast === 0) {
+        slowStatus = "自动慢敲中 · 今日快敲已用完";
+      } else if (remainingFast < cap) {
+        slowStatus = "自动慢敲中 · 今日还可快敲 " + remainingFast + " 次";
+      }
       this.setData({
         autoOn: true,
         fastAutoOn: false,
         slowAutoOn: true,
-        status: "自动慢敲中 · 可点「视频·快敲」加速",
+        status: slowStatus,
       });
     } else {
-      merit.normalizeAdQuota(this.state);
-      const usedFastToday = (this.state.adGrantAutoCount || 0) > 0;
+      let status = STATUS_IDLE;
+      if (remainingFast === 0) {
+        status = "今日快敲已结束 · 明天可再看视频续 5 分钟 · 慢敲仍可用";
+      } else if (remainingFast < cap) {
+        status = "今日还可快敲 " + remainingFast + " 次 · 看视频续 5 分钟 · 慢敲仍可用";
+      }
       this.setData({
         autoOn: false,
         fastAutoOn: false,
         slowAutoOn: false,
-        status: usedFastToday
-          ? "今日快敲已结束 · 明天可再看视频续 5 分钟 · 慢敲仍可用"
-          : STATUS_IDLE,
+        status,
       });
     }
   },

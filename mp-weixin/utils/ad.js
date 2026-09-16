@@ -3,9 +3,39 @@ const launch = require("../config/launch");
 let videoAd = null;
 let inited = false;
 
+/**
+ * 激励视频发奖策略（纯函数，便于自测）。
+ * - 正式 AppID + 非空广告位 → 播真广告
+ * - 游客号 + ALLOW_DEV_AD_SKIP === true → 开发跳过并发奖
+ * - 其余一律拒绝发奖（fail-closed）
+ */
+function resolveRewardedGrant(opts) {
+  const cfg = opts || {};
+  const isTourist = cfg.isTourist === true;
+  const unit = String(cfg.adUnitId || "").trim();
+  const allowDevAdSkip = cfg.allowDevAdSkip === true;
+  if (!isTourist && unit) {
+    return { action: "play" };
+  }
+  if (isTourist && allowDevAdSkip) {
+    return { action: "skip", toast: "开发版：已跳过广告" };
+  }
+  if (isTourist) {
+    return { action: "refuse", toast: "当前为开发游客号，无法验证广告" };
+  }
+  return { action: "refuse", toast: "广告未配置" };
+}
+
+function currentGrantPolicy(adUnitId) {
+  return resolveRewardedGrant({
+    isTourist: launch.IS_TOURIST,
+    adUnitId: adUnitId || launch.REWARDED_AD_UNIT_ID,
+    allowDevAdSkip: launch.ALLOW_DEV_AD_SKIP === true,
+  });
+}
+
 function canUseRealAd(adUnitId) {
-  const unit = adUnitId || launch.REWARDED_AD_UNIT_ID;
-  return !launch.IS_TOURIST && !!unit;
+  return currentGrantPolicy(adUnitId).action === "play";
 }
 
 function initRewardedAd(adUnitId) {
@@ -32,16 +62,29 @@ function watchRewarded(opts) {
   const onFail = opts && opts.onFail;
   if (!inited) initRewardedAd();
 
-  if (!videoAd) {
-    wx.showToast({ title: "开发版：已跳过广告", icon: "none" });
+  const fail = (title) => {
+    wx.showToast({
+      title: title || "广告暂时无法播放",
+      icon: "none",
+      duration: 2500,
+    });
+    if (typeof onFail === "function") onFail();
+  };
+
+  const policy = currentGrantPolicy();
+  if (policy.action === "skip") {
+    wx.showToast({ title: policy.toast, icon: "none", duration: 2500 });
     if (typeof onSuccess === "function") onSuccess();
     return;
   }
-
-  const fail = (title) => {
-    wx.showToast({ title: title || "广告暂时无法播放", icon: "none" });
-    if (typeof onFail === "function") onFail();
-  };
+  if (policy.action !== "play") {
+    fail(policy.toast);
+    return;
+  }
+  if (!videoAd) {
+    fail("广告不可用");
+    return;
+  }
 
   const handleClose = (res) => {
     if (videoAd && typeof videoAd.offClose === "function") {
@@ -74,4 +117,5 @@ module.exports = {
   initRewardedAd,
   watchRewarded,
   canUseRealAd,
+  resolveRewardedGrant,
 };
