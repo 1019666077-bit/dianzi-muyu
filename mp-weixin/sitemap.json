@@ -1,4 +1,7 @@
 {
   "desc": "电子木鱼",
-  "rules": [{ "action": "allow", "page": "*" }]
+  "rules": [
+    { "action": "disallow", "page": "pages/pack-keep/pack-keep" },
+    { "action": "allow", "page": "*" }
+  ]
 }

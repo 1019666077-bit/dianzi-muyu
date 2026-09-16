@@ -5,6 +5,8 @@
   "projectname": "dianzi-muyu",
   "setting": {
     "urlCheck": true,
-    "compileHotReLoad": true
+    "compileHotReLoad": true,
+    "ignoreUploadUnusedFiles": false,
+    "ignoreDevUnusedFiles": false
   }
 }

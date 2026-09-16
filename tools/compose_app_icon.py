@@ -35,8 +35,8 @@ def rects_overlap(a, b) -> bool:
 def compose(include_mallet: bool) -> Image.Image:
     # Body + ground only — shade/spec are screen-space overlays and ghost on flat icons.
     layer_paths = [
-        "skins/premium/muyu-premium-ground.webp",
-        "skins/premium/muyu-premium-body.webp",
+        "skins/premium/muyu-premium-ground.png",
+        "skins/premium/muyu-premium-body.png",
     ]
     layers = [load_rgba(os.path.join(ROOT, p)) for p in layer_paths]
     factor = 380 / layers[1].width
@@ -52,7 +52,7 @@ def compose(include_mallet: bool) -> Image.Image:
     fish_bb = alpha_bbox(canvas)
 
     if include_mallet and fish_bb:
-        mallet = load_rgba(os.path.join(ROOT, "skins/premium/muyu-premium-mallet.webp"))
+        mallet = load_rgba(os.path.join(ROOT, "skins/premium/muyu-premium-mallet.png"))
         mallet = scale(mallet, 0.55)
         mallet = mallet.rotate(-25, expand=True, resample=Image.Resampling.BICUBIC)
         fx1, fy1, fx2, fy2 = fish_bb
@@ -73,7 +73,7 @@ def compose(include_mallet: bool) -> Image.Image:
 
 
 def from_share_cover() -> Image.Image:
-    cover = load_rgba(os.path.join(ROOT, "share-cover.webp"))
+    cover = load_rgba(os.path.join(ROOT, "share-cover.jpg"))
     w, h = cover.size
     side = min(w, h - 80)
     left = (w - side) // 2

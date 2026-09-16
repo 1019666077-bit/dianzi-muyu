@@ -1,5 +1,5 @@
 {
-  "pages": ["pages/index/index", "pages/stats/stats"],
+  "pages": ["pages/index/index", "pages/stats/stats", "pages/pack-keep/pack-keep"],
   "window": {
     "navigationStyle": "custom",
     "navigationBarTextStyle": "white",

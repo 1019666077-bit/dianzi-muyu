@@ -1,4 +1,5 @@
 const launch = require("../../config/launch");
+const { SKINS, SFX, SHARE, DEFAULT_VIEW } = require("../../config/assets");
 const {
   initRewardedAd,
   watchRewarded,
@@ -24,61 +25,7 @@ const HINTS = {
   beads: "往下滑 · 拨过一颗",
   bowl: "轻点颂钵 · 槌敲钵沿",
 };
-const SKINS = {
-  muyu: [
-    {
-      id: "amber",
-      name: "樟木",
-      free: true,
-      premium: true,
-      body: "premium/muyu-premium-body.webp",
-      shade: "premium/muyu-premium-shade.webp",
-      spec: "premium/muyu-premium-spec.webp",
-      ground: "premium/muyu-premium-ground.webp",
-      rim: "premium/muyu-premium-rim.webp",
-      mallet: "premium/muyu-premium-mallet.webp",
-    },
-    {
-      id: "jade",
-      name: "花梨",
-      free: true,
-      premium: true,
-      body: "premium/muyu-premium-jade-body.webp",
-      shade: "premium/muyu-premium-jade-shade.webp",
-      spec: "premium/muyu-premium-jade-spec.webp",
-      ground: "premium/muyu-premium-jade-ground.webp",
-      rim: "premium/muyu-premium-jade-rim.webp",
-      mallet: "premium/muyu-premium-jade-mallet.webp",
-    },
-    {
-      id: "inkgold",
-      name: "紫檀",
-      free: false,
-      premium: true,
-      body: "premium/muyu-premium-inkgold-body.webp",
-      shade: "premium/muyu-premium-inkgold-shade.webp",
-      spec: "premium/muyu-premium-inkgold-spec.webp",
-      ground: "premium/muyu-premium-inkgold-ground.webp",
-      rim: "premium/muyu-premium-inkgold-rim.webp",
-      mallet: "premium/muyu-premium-inkgold-mallet.webp",
-    },
-  ],
-  beads: [
-    { id: "wood", name: "檀木", free: true, bead: "bead-wood.webp" },
-    { id: "jade", name: "青玉", free: true, bead: "bead-jade.webp" },
-    { id: "rosewood", name: "紫檀", free: false, bead: "bead-rosewood.webp" },
-  ],
-  bowl: [
-    { id: "brass", name: "黄铜", free: true, body: "bowl-brass.webp", mallet: "bowl-mallet-brass.webp" },
-    { id: "gold", name: "鎏金", free: true, body: "bowl-gold.webp", mallet: "bowl-mallet-gold.webp" },
-    { id: "iron", name: "乌金", free: false, body: "bowl-iron.webp", mallet: "bowl-mallet-iron.webp" },
-  ],
-};
 const FREE_UNLOCKS = ["muyu-amber", "muyu-jade", "beads-wood", "beads-jade", "bowl-brass", "bowl-gold"];
-
-function asset(file) {
-  return "/assets/skins/" + file;
-}
 
 const MUYU_LEGACY_ID = {
   "premium-test": "amber",
@@ -116,16 +63,16 @@ Page({
     autoOn: false,
     slowAutoOn: false,
     fastAutoOn: false,
-    muyuBody: asset("premium/muyu-premium-body.webp"),
-    muyuMallet: asset("premium/muyu-premium-mallet.webp"),
-    muyuShade: asset("premium/muyu-premium-shade.webp"),
-    muyuSpec: asset("premium/muyu-premium-spec.webp"),
-    muyuGround: asset("premium/muyu-premium-ground.webp"),
-    muyuRim: asset("premium/muyu-premium-rim.webp"),
-    bowlBody: asset("bowl-brass.webp"),
-    bowlMallet: asset("bowl-mallet-brass.webp"),
+    muyuBody: DEFAULT_VIEW.muyuBody,
+    muyuMallet: DEFAULT_VIEW.muyuMallet,
+    muyuShade: DEFAULT_VIEW.muyuShade,
+    muyuSpec: DEFAULT_VIEW.muyuSpec,
+    muyuGround: DEFAULT_VIEW.muyuGround,
+    muyuRim: DEFAULT_VIEW.muyuRim,
+    bowlBody: DEFAULT_VIEW.bowlBody,
+    bowlMallet: DEFAULT_VIEW.bowlMallet,
     bowlFlip: true,
-    beadSrc: asset("bead-wood.webp"),
+    beadSrc: DEFAULT_VIEW.beadSrc,
     beads: makeBeads(),
     beadOffset: 0,
     beadDropping: false,
@@ -172,7 +119,7 @@ Page({
     ["muyu", "beads", "bowl"].forEach((k) => {
       const a = wx.createInnerAudioContext();
       a.obeyMuteSwitch = false;
-      a.src = "/assets/sfx/" + k + ".wav";
+      a.src = SFX[k];
       this.audios[k] = a;
     });
     this.applyAllSkins();
@@ -230,7 +177,7 @@ Page({
     return {
       title: "今日敲击 " + n + " 次 · 电子木鱼",
       path: "/pages/index/index",
-      imageUrl: "/assets/share-cover.webp",
+      imageUrl: SHARE,
     };
   },
 
@@ -298,17 +245,17 @@ Page({
     this.state.skins[kind] = s.id;
     const patch = {};
     if (kind === "muyu") {
-      patch.muyuBody = asset(s.body);
-      patch.muyuMallet = asset(s.mallet);
-      patch.muyuShade = s.shade ? asset(s.shade) : "";
-      patch.muyuSpec = s.spec ? asset(s.spec) : "";
-      patch.muyuGround = s.ground ? asset(s.ground) : "";
-      patch.muyuRim = s.rim ? asset(s.rim) : "";
+      patch.muyuBody = s.body;
+      patch.muyuMallet = s.mallet;
+      patch.muyuShade = s.shade || "";
+      patch.muyuSpec = s.spec || "";
+      patch.muyuGround = s.ground || "";
+      patch.muyuRim = s.rim || "";
     } else if (kind === "beads") {
-      patch.beadSrc = asset(s.bead);
+      patch.beadSrc = s.bead;
     } else if (kind === "bowl") {
-      patch.bowlBody = asset(s.body);
-      patch.bowlMallet = asset(s.mallet);
+      patch.bowlBody = s.body;
+      patch.bowlMallet = s.mallet;
       patch.bowlFlip = s.id === "brass";
     }
     this.save();
@@ -510,7 +457,7 @@ Page({
       id: s.id,
       name: s.name,
       unlocked: this.isUnlocked(mode, s.id),
-      thumb: asset(s.body || s.bead || s.mallet),
+      thumb: s.body || s.bead || s.mallet,
     }));
     const groups = [{ gid: "all", label: "", items: list }];
     this.setData({
