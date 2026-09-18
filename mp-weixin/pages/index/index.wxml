@@ -36,20 +36,20 @@
       <text wx:for="{{floats}}" wx:key="id" class="float-txt" style="left: {{item.left}}%; top: {{item.top}}%;">{{item.text}}</text>
     </view>
 
-    <view wx:if="{{mode === 'muyu'}}" class="tap-area" bindtap="onTapMuyu">
+    <view wx:if="{{mode === 'muyu'}}" class="tap-area" catchtouchstart="onTapMuyu">
       <view class="instrument stage-muyu premium">
-        <image class="muyu-ground-img {{bodyHit ? 'hit' : ''}}" src="{{muyuGround}}" mode="aspectFit" />
-        <view class="muyu-ground-shadow {{bodyHit ? 'hit' : ''}}"></view>
-        <view class="instrument-body {{bodyHit ? 'hit' : ''}}">
+        <image class="muyu-ground-img {{hitFlip === 1 ? 'hit' : ''}} {{hitFlip === 2 ? 'hit-alt' : ''}}" src="{{muyuGround}}" mode="aspectFit" />
+        <view class="muyu-ground-shadow {{hitFlip === 1 ? 'hit' : ''}} {{hitFlip === 2 ? 'hit-alt' : ''}}"></view>
+        <view class="instrument-body {{hitFlip === 1 ? 'hit' : ''}} {{hitFlip === 2 ? 'hit-alt' : ''}}">
           <image class="prop-img muyu-layer muyu-layer-body" src="{{muyuBody}}" mode="aspectFit" />
           <image class="prop-img muyu-layer muyu-layer-shade" src="{{muyuShade}}" mode="aspectFit" />
-          <image class="prop-img muyu-layer muyu-layer-spec {{muyuFlash ? 'flash' : ''}}" src="{{muyuSpec}}" mode="aspectFit" />
+          <image class="prop-img muyu-layer muyu-layer-spec {{hitFlip === 1 ? 'flash' : ''}} {{hitFlip === 2 ? 'flash-alt' : ''}}" src="{{muyuSpec}}" mode="aspectFit" />
           <image wx:if="{{muyuRim}}" class="prop-img muyu-layer muyu-layer-rim" src="{{muyuRim}}" mode="aspectFit" />
         </view>
-        <view class="muyu-mallet {{muyuSwing ? 'swing' : ''}}">
+        <view class="muyu-mallet {{hitFlip === 1 ? 'swing' : ''}} {{hitFlip === 2 ? 'swing-alt' : ''}}">
           <image class="muyu-mallet-img" src="{{muyuMallet}}" mode="aspectFit" />
         </view>
-        <view class="hit-flash flash-muyu flash-premium {{muyuFlash ? 'pop' : ''}}"></view>
+        <view class="hit-flash flash-muyu flash-premium {{hitFlip === 1 ? 'pop' : ''}} {{hitFlip === 2 ? 'pop-alt' : ''}}"></view>
       </view>
     </view>
 
@@ -61,18 +61,18 @@
       </view>
     </view>
 
-    <view wx:else class="tap-area" bindtap="onTapBowl">
+    <view wx:else class="tap-area" catchtouchstart="onTapBowl">
       <view class="instrument stage-bowl">
-        <view class="instrument-body bowl-body {{bodyHit ? 'hit' : ''}}">
+        <view class="instrument-body bowl-body {{hitFlip === 1 ? 'hit' : ''}} {{hitFlip === 2 ? 'hit-alt' : ''}}">
           <image class="prop-img" src="{{bowlBody}}" mode="aspectFit" />
         </view>
-        <view class="bowl-mallet-wrap {{bowlSwing ? 'swing' : ''}}">
+        <view class="bowl-mallet-wrap {{hitFlip === 1 ? 'swing' : ''}} {{hitFlip === 2 ? 'swing-alt' : ''}}">
           <view class="bowl-mallet-flip-box {{bowlFlip ? 'mallet-flip' : ''}}">
             <image class="bowl-mallet-img" src="{{bowlMallet}}" mode="heightFix" style="height: 100%;" />
           </view>
         </view>
-        <view class="ripple {{bowlRipple ? 'play' : ''}}"></view>
-        <view class="hit-flash flash-bowl {{bowlFlash ? 'pop' : ''}}"></view>
+        <view class="ripple {{hitFlip === 1 ? 'play' : ''}} {{hitFlip === 2 ? 'play-alt' : ''}}"></view>
+        <view class="hit-flash flash-bowl {{hitFlip === 1 ? 'pop' : ''}} {{hitFlip === 2 ? 'pop-alt' : ''}}"></view>
       </view>
     </view>
   </view>

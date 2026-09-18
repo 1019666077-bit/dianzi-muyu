@@ -10,6 +10,7 @@ const {
 const merit = require("../../utils/merit");
 const prefs = require("../../utils/prefs");
 const { writeWhenPrivacy } = require("../../utils/localWrite");
+const sfx = require("../../utils/sfx");
 
 const AUTO_MS = 5 * 60 * 1000;
 const FAST_AUTO_INTERVAL = 550;
@@ -84,12 +85,7 @@ Page({
     isTourist: launch.IS_TOURIST,
     rewardAdPlayable: false,
     rewardAdMuted: true,
-    bodyHit: false,
-    muyuSwing: false,
-    muyuFlash: false,
-    bowlSwing: false,
-    bowlFlash: false,
-    bowlRipple: false,
+    hitFlip: 0,
     statusPad: 48,
   },
 
@@ -115,13 +111,8 @@ Page({
     this.autoTimer = null;
     this.autoTick = null;
     this.beadDrag = null;
-    this.audios = {};
-    ["muyu", "beads", "bowl"].forEach((k) => {
-      const a = wx.createInnerAudioContext();
-      a.obeyMuteSwitch = false;
-      a.src = SFX[k];
-      this.audios[k] = a;
-    });
+    this._saveTimer = null;
+    this.sfx = sfx.createPool(SFX);
     this.applyAllSkins();
     this.syncMeritUI();
     this.refreshRewardAdUi();
@@ -160,16 +151,20 @@ Page({
     } catch (e) {}
   },
 
+  onHide() {
+    this.flushSave();
+  },
+
   onUnload() {
     this.slowAutoOn = false;
     this.clearAutoTimers();
+    this.flushSave();
     (this.floatTimers || []).forEach((id) => {
       try { clearTimeout(id); } catch (e) {}
     });
     this.floatTimers = [];
-    Object.keys(this.audios || {}).forEach((k) => {
-      try { this.audios[k].destroy(); } catch (e) {}
-    });
+    sfx.destroy(this.sfx);
+    this.sfx = null;
   },
 
   onShareAppMessage() {
@@ -232,6 +227,22 @@ Page({
     write();
   },
 
+  /** Coalesce tap writes so setStorageSync is not on the tap frame. */
+  scheduleSave() {
+    if (this._saveTimer) return;
+    this._saveTimer = setTimeout(() => {
+      this._saveTimer = null;
+      this.save();
+    }, 280);
+  },
+
+  flushSave() {
+    if (!this._saveTimer) return;
+    clearTimeout(this._saveTimer);
+    this._saveTimer = null;
+    this.save();
+  },
+
   isUnlocked(kind, id) {
     const s = findSkin(kind, id);
     if (!s) return false;
@@ -270,25 +281,27 @@ Page({
   },
 
   play(kind) {
-    const a = this.audios[kind];
-    if (!a) return;
-    try {
-      a.stop();
-      a.seek(0);
-      a.play();
-    } catch (e) {
-      try { a.play(); } catch (e2) {}
-    }
+    sfx.play(this.sfx, kind);
   },
 
-  bump(kind) {
+  bump(kind, extraPatch) {
     merit.recordTap(this.state, kind);
-    this.save();
-    this.syncMeritUI();
-    this.floatText();
     this.play(kind);
+    this.scheduleSave();
+    const patch = this.tapFeedbackPatch(kind);
+    if (extraPatch) {
+      const keys = Object.keys(extraPatch);
+      for (let i = 0; i < keys.length; i++) patch[keys[i]] = extraPatch[keys[i]];
+    }
+    this.setData(patch);
     if (prefs.isVibrateOn()) {
-      wx.vibrateShort({ type: "light" });
+      const vibrate = () => {
+        try {
+          wx.vibrateShort({ type: "light" });
+        } catch (e) {}
+      };
+      if (typeof wx.nextTick === "function") wx.nextTick(vibrate);
+      else setTimeout(vibrate, 0);
     }
   },
 
@@ -316,7 +329,7 @@ Page({
     });
   },
 
-  floatText() {
+  queueFloat() {
     const id = ++this.floatId;
     const mode = this.data.mode;
     let left = 48;
@@ -331,21 +344,26 @@ Page({
       left = 38 + Math.random() * 16;
       top = 40;
     }
-    const floats = this.data.floats.concat([{ id, text: "+1", left, top }]);
-    this.setData({ floats });
+    let floats = (this.data.floats || []).concat([{ id, text: "+1", left, top }]);
+    if (floats.length > 6) floats = floats.slice(-6);
     const tid = setTimeout(() => {
-      this.setData({ floats: this.data.floats.filter((x) => x.id !== id) });
+      this.setData({ floats: (this.data.floats || []).filter((x) => x.id !== id) });
       this.floatTimers = (this.floatTimers || []).filter((x) => x !== tid);
     }, 1000);
     this.floatTimers = (this.floatTimers || []).concat([tid]);
+    return floats;
   },
 
-  restart(flag, ms) {
-    this.setData({ [flag]: false });
-    setTimeout(() => {
-      this.setData({ [flag]: true });
-      setTimeout(() => this.setData({ [flag]: false }), ms);
-    }, 16);
+  tapFeedbackPatch(kind) {
+    const patch = {
+      todayMerit: this.state.todayMerit,
+      total: this.state.total,
+      floats: this.queueFloat(),
+    };
+    if (kind === "muyu" || kind === "bowl") {
+      patch.hitFlip = this.data.hitFlip === 1 ? 2 : 1;
+    }
+    return patch;
   },
 
   onTapMuyu() {
@@ -354,9 +372,6 @@ Page({
     this.lastTapAt = now;
     this.bump("muyu");
     if (!this._tapFromAuto) this.maybeShowMyMiniProgramHint();
-    this.restart("bodyHit", 320);
-    this.restart("muyuSwing", 260);
-    this.restart("muyuFlash", 380);
   },
 
   onTapBowl() {
@@ -365,10 +380,6 @@ Page({
     this.lastTapAt = now;
     this.bump("bowl");
     if (!this._tapFromAuto) this.maybeShowMyMiniProgramHint();
-    this.restart("bodyHit", 320);
-    this.restart("bowlSwing", 320);
-    this.restart("bowlFlash", 420);
-    this.restart("bowlRipple", 840);
   },
 
   commitBead() {
@@ -376,8 +387,7 @@ Page({
     const last = beads.pop();
     last.rotate = Math.floor(Math.random() * 360);
     beads.unshift(last);
-    this.setData({ beads });
-    this.bump("beads");
+    this.bump("beads", { beads });
     if (!this._beadFromAuto) this.maybeShowMyMiniProgramHint();
     this._beadFromAuto = false;
   },
