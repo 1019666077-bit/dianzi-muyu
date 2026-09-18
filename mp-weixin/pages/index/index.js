@@ -85,7 +85,13 @@ Page({
     isTourist: launch.IS_TOURIST,
     rewardAdPlayable: false,
     rewardAdMuted: true,
-    hitFlip: 0,
+    muyuHit: false,
+    muyuSwing: false,
+    muyuFlash: false,
+    bowlHit: false,
+    bowlSwing: false,
+    bowlFlash: false,
+    bowlRipple: false,
     statusPad: 48,
   },
 
@@ -112,7 +118,7 @@ Page({
     this.autoTick = null;
     this.beadDrag = null;
     this._saveTimer = null;
-    this._hitFlip = 0;
+    this._hitTimers = [];
     this._tapUi = null;
     this._tapUiScheduled = false;
     this._lastVibrateAt = 0;
@@ -159,6 +165,7 @@ Page({
   onHide() {
     this.flushSave();
     this.flushTapUi();
+    this.clearHitTimers();
     sfx.onHide(this.sfx);
   },
 
@@ -167,6 +174,7 @@ Page({
     this.clearAutoTimers();
     this.flushSave();
     this.flushTapUi();
+    this.clearHitTimers();
     (this.floatTimers || []).forEach((id) => {
       try { clearTimeout(id); } catch (e) {}
     });
@@ -297,6 +305,7 @@ Page({
     this.play(kind);
     this.scheduleSave();
     this.queueTapUi(kind, extraPatch);
+    this.restartHit(kind);
     this.queueVibrate();
   },
 
@@ -389,16 +398,52 @@ Page({
   },
 
   tapFeedbackPatch(kind) {
-    const patch = {
+    return {
       todayMerit: this.state.todayMerit,
       total: this.state.total,
       floats: this.queueFloat(),
     };
-    if (kind === "muyu" || kind === "bowl") {
-      this._hitFlip = this._hitFlip === 1 ? 2 : 1;
-      patch.hitFlip = this._hitFlip;
+  },
+
+  hitOffPatch(kind) {
+    if (kind === "muyu") {
+      return { muyuHit: false, muyuSwing: false, muyuFlash: false };
     }
-    return patch;
+    return { bowlHit: false, bowlSwing: false, bowlFlash: false, bowlRipple: false };
+  },
+
+  hitOnPatch(kind) {
+    if (kind === "muyu") {
+      return { muyuHit: true, muyuSwing: true, muyuFlash: true };
+    }
+    return { bowlHit: true, bowlSwing: true, bowlFlash: true, bowlRipple: true };
+  },
+
+  clearHitTimers() {
+    (this._hitTimers || []).forEach((id) => {
+      try { clearTimeout(id); } catch (e) {}
+    });
+    this._hitTimers = [];
+  },
+
+  /**
+   * Force CSS animation replay: drop class, then next frame add it back.
+   * WeChat does not restart keyframes when toggling two classes that share
+   * the same animation-name (the hitFlip 1↔2 bug).
+   */
+  restartHit(kind) {
+    if (kind !== "muyu" && kind !== "bowl") return;
+    this.clearHitTimers();
+    this.setData(this.hitOffPatch(kind));
+    const t1 = setTimeout(() => {
+      this.setData(this.hitOnPatch(kind));
+      const hold = kind === "muyu" ? 380 : 840;
+      const t2 = setTimeout(() => {
+        this.setData(this.hitOffPatch(kind));
+      }, hold);
+      this._hitTimers.push(t2);
+    }, 16);
+    this._hitTimers.push(t1);
   },
 
   onTapMuyu() {
@@ -487,11 +532,19 @@ Page({
 
   setMode(e) {
     const mode = e.currentTarget.dataset.tab;
+    this.clearHitTimers();
     this.setData({
       mode,
       modeName: MODE_NAMES[mode],
       hint: HINTS[mode],
       skinShow: false,
+      muyuHit: false,
+      muyuSwing: false,
+      muyuFlash: false,
+      bowlHit: false,
+      bowlSwing: false,
+      bowlFlash: false,
+      bowlRipple: false,
     });
     this.renderSkinGrid();
   },
