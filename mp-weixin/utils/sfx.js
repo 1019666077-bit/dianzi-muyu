@@ -1,7 +1,14 @@
 /**
- * Tap SFX: prefer WebAudio one-shots (overlap, no stop/seek).
- * InnerAudio fallback: round-robin pool, never stop() on tap, never seek in onEnded.
- * iOS 连点断音 comes from stop+seek+play races and reusing a still-playing slot.
+ * Rapid-tap SFX pool (InnerAudio).
+ *
+ * iOS 连点断音: 单实例 stop()+seek(0)+play()，seek 未完成就 play → 静音，
+ * 或下一击 stop 把上一击掐掉。
+ *
+ * Rules:
+ * - Prewarm the muyu pool at create (do not create 5 ctx on the first 连点).
+ * - Tap path: never stop(), never seek().
+ * - onEnded: mark idle and seek(0) so the next reuse can play() from 0.
+ * - Prefer an idle slot whose playhead is already ~0.
  */
 const INNER_POOL = 5;
 const BUSY_MS = { muyu: 280, beads: 180, bowl: 900 };
@@ -15,135 +22,27 @@ function setMixOption() {
 
 function createInnerCtx() {
   try {
-    const a = wx.createInnerAudioContext({ useWebAudioImplement: true });
+    const a = wx.createInnerAudioContext({ useWebAudioImplement: false });
     if (a) return a;
   } catch (e) {}
   return wx.createInnerAudioContext();
-}
-
-function createWeb() {
-  try {
-    if (typeof wx.createWebAudioContext === "function") {
-      const ctx = wx.createWebAudioContext();
-      if (ctx && typeof ctx.createBufferSource === "function") return ctx;
-    }
-  } catch (e) {}
-  return null;
-}
-
-function decodeBuffer(ctx, data, ok, fail) {
-  let settled = false;
-  const done = (buf) => {
-    if (settled) return;
-    settled = true;
-    if (buf) ok(buf);
-    else if (fail) fail();
-  };
-  const bad = () => {
-    if (settled) return;
-    settled = true;
-    if (fail) fail();
-  };
-  try {
-    const maybe = ctx.decodeAudioData(data, done, bad);
-    if (maybe && typeof maybe.then === "function") {
-      maybe.then(done).catch(bad);
-    }
-  } catch (e) {
-    bad();
-  }
-}
-
-function readLocal(filePath, ok, fail) {
-  let fs = null;
-  try {
-    fs = wx.getFileSystemManager();
-  } catch (e) {
-    fail();
-    return;
-  }
-  fs.readFile({
-    filePath,
-    success: (res) => {
-      if (res && res.data) ok(res.data);
-      else fail();
-    },
-    fail,
-  });
-}
-
-function loadBuffer(state, kind, src) {
-  if (!state.web || !src) return;
-  const tryPath = (path, next) => {
-    readLocal(
-      path,
-      (data) => {
-        decodeBuffer(
-          state.web,
-          data,
-          (buf) => {
-            state.buffers[kind] = buf;
-          },
-          () => {
-            if (next) next();
-          }
-        );
-      },
-      () => {
-        if (next) next();
-      }
-    );
-  };
-  tryPath(src, () => {
-    if (src.charAt(0) === "/") tryPath(src.slice(1));
-  });
-}
-
-function loadAll(state) {
-  const map = state.srcMap || {};
-  Object.keys(map).forEach((k) => loadBuffer(state, k, map[k]));
-}
-
-function resumeWeb(state) {
-  const ctx = state && state.web;
-  if (!ctx) return;
-  try {
-    if (ctx.state === "suspended" && typeof ctx.resume === "function") ctx.resume();
-  } catch (e) {}
-}
-
-function playWeb(state, kind) {
-  const ctx = state.web;
-  const buffer = state.buffers[kind];
-  if (!ctx || !buffer) return false;
-  try {
-    resumeWeb(state);
-    const src = ctx.createBufferSource();
-    src.buffer = buffer;
-    src.connect(ctx.destination);
-    try {
-      src.start(0);
-    } catch (e) {
-      src.start();
-    }
-    return true;
-  } catch (e) {
-    return false;
-  }
 }
 
 function armInner(a, kind) {
   a._busy = false;
   a._token = 0;
   a._kind = kind;
-  const free = () => {
+  const onFree = () => {
     a._busy = false;
+    try {
+      if (a.currentTime) a.seek(0);
+    } catch (e) {}
   };
   try {
-    if (typeof a.onEnded === "function") a.onEnded(free);
+    if (typeof a.onEnded === "function") a.onEnded(onFree);
   } catch (e) {}
   try {
-    if (typeof a.onError === "function") a.onError(free);
+    if (typeof a.onError === "function") a.onError(onFree);
   } catch (e) {}
 }
 
@@ -173,131 +72,78 @@ function markBusy(a, kind) {
   }, ms);
 }
 
+function playhead(a) {
+  return typeof a.currentTime === "number" ? a.currentTime : 0;
+}
+
+function pickSlot(pool, startAt) {
+  const n = pool.length;
+  for (let i = 0; i < n; i++) {
+    const j = (startAt + i) % n;
+    if (!pool[j]._busy && playhead(pool[j]) <= 0.02) return j;
+  }
+  for (let i = 0; i < n; i++) {
+    const j = (startAt + i) % n;
+    if (!pool[j]._busy) return j;
+  }
+  return startAt % n;
+}
+
 function playInnerSlot(a, kind) {
-  const wasBusy = !!a._busy;
-  const token = ++a._token;
-  const t = typeof a.currentTime === "number" ? a.currentTime : 0;
+  a._token += 1;
   markBusy(a, kind);
-  const start = () => {
-    if (a._token !== token) return;
+  try {
+    a.play();
+  } catch (e) {
     try {
       a.play();
-    } catch (e) {
-      try {
-        a.play();
-      } catch (e2) {}
-    }
-  };
-  // Reuse of a finished clip (playhead at end). Never seek a still-playing slot.
-  if (!wasBusy && t > 0.02) {
-    let started = false;
-    const kick = () => {
-      if (started || a._token !== token) return;
-      started = true;
-      start();
-    };
-    a._seekKick = kick;
-    if (!a._onSeeked && typeof a.onSeeked === "function") {
-      a._onSeeked = () => {
-        const fn = a._seekKick;
-        a._seekKick = null;
-        if (fn) fn();
-      };
-      try {
-        a.onSeeked(a._onSeeked);
-      } catch (e) {}
-    }
-    try {
-      a.seek(0);
-    } catch (e) {
-      kick();
-      return;
-    }
-    setTimeout(kick, 20);
-    return;
+    } catch (e2) {}
   }
-  start();
 }
 
 function playInner(state, kind) {
   makeInnerKind(state, kind);
   const pool = state.inner.pools[kind];
   if (!pool || !pool.length) return;
-  const n = pool.length;
-  const startAt = state.inner.idx[kind] % n;
-  let pick = -1;
-  for (let i = 0; i < n; i++) {
-    const j = (startAt + i) % n;
-    if (!pool[j]._busy) {
-      pick = j;
-      break;
-    }
-  }
-  if (pick < 0) pick = startAt;
+  const startAt = state.inner.idx[kind] % pool.length;
+  const pick = pickSlot(pool, startAt);
   state.inner.idx[kind] = pick + 1;
   playInnerSlot(pool[pick], kind);
 }
 
 function createPool(srcMap) {
-  const state = {
-    srcMap: srcMap || {},
-    buffers: {},
-    web: createWeb(),
-    inner: null,
-  };
-  if (state.web) loadAll(state);
-  else {
-    Object.keys(state.srcMap).forEach((k) => makeInnerKind(state, k));
-  }
+  const state = { srcMap: srcMap || {}, inner: null };
+  makeInnerKind(state, "muyu");
   return state;
 }
 
 function play(state, kind) {
   if (!state) return;
-  if (playWeb(state, kind)) return;
   playInner(state, kind);
 }
 
-function onShow(state) {
-  if (!state) return;
-  resumeWeb(state);
-  try {
-    if (state.web && state.web.state === "closed") {
-      state.web = createWeb();
-      state.buffers = {};
-      if (state.web) loadAll(state);
-    }
-  } catch (e) {}
-}
+function onShow() {}
 
-function onHide(state) {
-  // Intentionally no suspend(): iOS WeChat often fails to resume short SFX.
-  if (!state) return;
-}
+function onHide() {}
 
 function destroy(state) {
-  if (!state) return;
-  if (state.inner && state.inner.pools) {
-    Object.keys(state.inner.pools).forEach((k) => {
-      (state.inner.pools[k] || []).forEach((a) => {
-        try {
-          a.destroy();
-        } catch (e) {}
-      });
+  if (!state || !state.inner || !state.inner.pools) return;
+  Object.keys(state.inner.pools).forEach((k) => {
+    (state.inner.pools[k] || []).forEach((a) => {
+      try {
+        a.destroy();
+      } catch (e) {}
     });
-  }
+  });
   state.inner = null;
-  try {
-    if (state.web && typeof state.web.close === "function") state.web.close();
-  } catch (e) {}
-  state.web = null;
-  state.buffers = {};
 }
 
 module.exports = {
   INNER_POOL,
+  BUSY_MS,
   createPool,
   play,
+  pickSlot,
   onShow,
   onHide,
   destroy,
