@@ -173,8 +173,12 @@ function checkIndexSource() {
   const iPlay = js.indexOf("this.play(kind)");
   const iSave = js.indexOf("this.scheduleSave()");
   const iUi = js.indexOf("this.queueTapUi(kind, extraPatch)");
+  const iHit = js.indexOf("this.restartHit(kind)");
   const iVib = js.indexOf("this.queueVibrate()");
-  assert(iPlay > 0 && iPlay < iSave && iSave < iUi && iUi < iVib, "bump order play → save → ui → vibrate");
+  assert(
+    iPlay > 0 && iPlay < iSave && iSave < iUi && iUi < iHit && iHit < iVib,
+    "bump order play → save → ui → restartHit → vibrate"
+  );
   assert(js.indexOf("wx.nextTick") >= 0, "setData coalesced via nextTick");
   assert(js.indexOf("if (now - (this._lastVibrateAt || 0) < 180) return") >= 0, "vibrate throttled");
   assert(js.indexOf("this._saveTimer = setTimeout") >= 0, "save deferred");

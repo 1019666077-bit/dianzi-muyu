@@ -218,8 +218,7 @@ button::after { border: none; }
   transform: rotateX(9deg) rotateY(-3deg);
   z-index: 2;
 }
-.stage-muyu.premium .instrument-body.hit,
-.stage-muyu.premium .instrument-body.hit-alt { animation: bodyHitPremium .32s ease-out; }
+.stage-muyu.premium .instrument-body.hit { animation: bodyHitPremium .32s ease-out; }
 @keyframes bodyHitPremium {
   0%, 34% { transform: rotateX(9deg) rotateY(-3deg) scale(1); }
   50% { transform: rotateX(12deg) rotateY(-3deg) scale(0.958); }
@@ -236,8 +235,7 @@ button::after { border: none; }
   z-index: 0;
   pointer-events: none;
 }
-.muyu-ground-shadow.hit,
-.muyu-ground-shadow.hit-alt { animation: shadowHit .36s ease-out; }
+.muyu-ground-shadow.hit { animation: shadowHit .36s ease-out; }
 .muyu-ground-img {
   position: absolute;
   left: 0; right: 0; top: 0; bottom: 0;
@@ -246,8 +244,7 @@ button::after { border: none; }
   z-index: 0;
   pointer-events: none;
 }
-.muyu-ground-img.hit,
-.muyu-ground-img.hit-alt { animation: shadowHit .36s ease-out; }
+.muyu-ground-img.hit { animation: shadowHit .36s ease-out; }
 @keyframes shadowHit {
   0%, 34% { transform: scale(1); opacity: 1; }
   50% { transform: scale(1.18); opacity: .7; }
@@ -265,8 +262,7 @@ button::after { border: none; }
 }
 .muyu-layer-shade { z-index: 2; opacity: 0.55; }
 .muyu-layer-spec { z-index: 3; opacity: 0.32; }
-.muyu-layer-spec.flash,
-.muyu-layer-spec.flash-alt { animation: specBump .1s ease-out; }
+.muyu-layer-spec.flash { animation: specBump .1s ease-out; }
 @keyframes specBump {
   0% { opacity: 0.5; }
   100% { opacity: 0.32; }
@@ -289,8 +285,7 @@ button::after { border: none; }
   bottom: 8%;
   left: 2%;
 }
-.instrument-body.hit,
-.instrument-body.hit-alt { animation: bodyHit .32s ease-out; }
+.instrument-body.hit { animation: bodyHit .32s ease-out; }
 @keyframes bodyHit {
   0%, 34% { transform: scale(1); }
   50% { transform: scale(0.968); }
@@ -320,8 +315,7 @@ button::after { border: none; }
   width: 100%;
   height: 100%;
 }
-.muyu-mallet.swing,
-.muyu-mallet.swing-alt { animation: muyuTap .26s cubic-bezier(.35, 0, .2, 1); }
+.muyu-mallet.swing { animation: muyuTap .26s cubic-bezier(.35, 0, .2, 1); }
 @keyframes muyuTap {
   0%, 100% { transform: rotate(-10deg); }
   36% { transform: rotate(-48deg); }
@@ -343,8 +337,7 @@ button::after { border: none; }
   pointer-events: none;
   filter: drop-shadow(0 10px 12px rgba(0,0,0,.45));
 }
-.bowl-mallet-wrap.swing,
-.bowl-mallet-wrap.swing-alt { animation: bowlTap .32s cubic-bezier(.2, .85, .25, 1); }
+.bowl-mallet-wrap.swing { animation: bowlTap .32s cubic-bezier(.2, .85, .25, 1); }
 @keyframes bowlTap {
   0%, 100% { transform: rotate(-8deg); }
   36%, 50% { transform: translate(-18px, 8px) rotate(24deg); }
@@ -395,8 +388,7 @@ button::after { border: none; }
 }
 .flash-muyu { left: 56%; top: 18%; }
 .flash-bowl { left: 66%; top: 30%; }
-.hit-flash.pop,
-.hit-flash.pop-alt { animation: flashPop .28s ease-out .1s; }
+.hit-flash.pop { animation: flashPop .28s ease-out .1s; }
 @keyframes flashPop {
   0% { opacity: .95; transform: scale(.35); }
   100% { opacity: 0; transform: scale(2.3); }
@@ -414,8 +406,7 @@ button::after { border: none; }
   pointer-events: none;
   z-index: 5;
 }
-.ripple.play,
-.ripple.play-alt { animation: rip .7s ease-out .14s; }
+.ripple.play { animation: rip .7s ease-out .14s; }
 @keyframes rip {
   from { transform: scale(0.6); opacity: .8; }
   to { transform: scale(3.2); opacity: 0; }
