@@ -112,6 +112,10 @@ Page({
     this.autoTick = null;
     this.beadDrag = null;
     this._saveTimer = null;
+    this._hitFlip = 0;
+    this._tapUi = null;
+    this._tapUiScheduled = false;
+    this._lastVibrateAt = 0;
     this.sfx = sfx.createPool(SFX);
     this.applyAllSkins();
     this.syncMeritUI();
@@ -122,6 +126,7 @@ Page({
   onShow() {
     this.state = merit.getState(getApp(), FREE_UNLOCKS);
     if (merit.rollover(this.state)) this.save();
+    sfx.onShow(this.sfx);
     this.syncMeritUI();
     this.refreshRewardAdUi();
     this.restartAutoLoop();
@@ -153,12 +158,15 @@ Page({
 
   onHide() {
     this.flushSave();
+    this.flushTapUi();
+    sfx.onHide(this.sfx);
   },
 
   onUnload() {
     this.slowAutoOn = false;
     this.clearAutoTimers();
     this.flushSave();
+    this.flushTapUi();
     (this.floatTimers || []).forEach((id) => {
       try { clearTimeout(id); } catch (e) {}
     });
@@ -288,21 +296,45 @@ Page({
     merit.recordTap(this.state, kind);
     this.play(kind);
     this.scheduleSave();
+    this.queueTapUi(kind, extraPatch);
+    this.queueVibrate();
+  },
+
+  queueTapUi(kind, extraPatch) {
     const patch = this.tapFeedbackPatch(kind);
     if (extraPatch) {
       const keys = Object.keys(extraPatch);
       for (let i = 0; i < keys.length; i++) patch[keys[i]] = extraPatch[keys[i]];
     }
+    this._tapUi = patch;
+    if (this._tapUiScheduled) return;
+    this._tapUiScheduled = true;
+    const flush = () => {
+      this._tapUiScheduled = false;
+      this.flushTapUi();
+    };
+    if (typeof wx.nextTick === "function") wx.nextTick(flush);
+    else setTimeout(flush, 0);
+  },
+
+  flushTapUi() {
+    const patch = this._tapUi;
+    this._tapUi = null;
+    if (!patch) return;
     this.setData(patch);
-    if (prefs.isVibrateOn()) {
-      const vibrate = () => {
-        try {
-          wx.vibrateShort({ type: "light" });
-        } catch (e) {}
-      };
-      if (typeof wx.nextTick === "function") wx.nextTick(vibrate);
-      else setTimeout(vibrate, 0);
-    }
+  },
+
+  queueVibrate() {
+    if (!prefs.isVibrateOn()) return;
+    const now = Date.now();
+    if (now - (this._lastVibrateAt || 0) < 180) return;
+    this._lastVibrateAt = now;
+    setTimeout(() => {
+      if (!prefs.isVibrateOn()) return;
+      try {
+        wx.vibrateShort({ type: "light" });
+      } catch (e) {}
+    }, 32);
   },
 
   maybeShowMyMiniProgramHint() {
@@ -344,8 +376,10 @@ Page({
       left = 38 + Math.random() * 16;
       top = 40;
     }
-    let floats = (this.data.floats || []).concat([{ id, text: "+1", left, top }]);
-    if (floats.length > 6) floats = floats.slice(-6);
+    let prev = this.data.floats || [];
+    if (this._tapUi && this._tapUi.floats) prev = this._tapUi.floats;
+    let floats = prev.concat([{ id, text: "+1", left, top }]);
+    if (floats.length > 3) floats = floats.slice(-3);
     const tid = setTimeout(() => {
       this.setData({ floats: (this.data.floats || []).filter((x) => x.id !== id) });
       this.floatTimers = (this.floatTimers || []).filter((x) => x !== tid);
@@ -361,7 +395,8 @@ Page({
       floats: this.queueFloat(),
     };
     if (kind === "muyu" || kind === "bowl") {
-      patch.hitFlip = this.data.hitFlip === 1 ? 2 : 1;
+      this._hitFlip = this._hitFlip === 1 ? 2 : 1;
+      patch.hitFlip = this._hitFlip;
     }
     return patch;
   },
