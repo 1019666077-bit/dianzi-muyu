@@ -1,5 +1,6 @@
 const launch = require("../../config/launch");
-const { SKINS, SFX, SHARE, DEFAULT_VIEW } = require("../../config/assets");
+const { SKINS, SFX, DEFAULT_VIEW } = require("../../config/assets");
+const share = require("../../utils/share");
 const {
   initRewardedAd,
   watchRewarded,
@@ -184,12 +185,11 @@ Page({
   },
 
   onShareAppMessage() {
-    const n = (this.state && this.state.todayMerit) || 0;
-    return {
-      title: "今日敲击 " + n + " 次 · 电子木鱼",
-      path: "/pages/index/index",
-      imageUrl: SHARE,
-    };
+    return share.appMessage(share.todayCount(this));
+  },
+
+  onShareTimeline() {
+    return share.timeline(share.todayCount(this));
   },
 
   syncMeritUI() {

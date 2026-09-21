@@ -1,5 +1,6 @@
 const merit = require("../../utils/merit");
 const prefs = require("../../utils/prefs");
+const share = require("../../utils/share");
 
 const FREE_UNLOCKS = [
   "muyu-amber", "muyu-jade", "beads-wood", "beads-jade", "bowl-brass", "bowl-gold",
@@ -81,6 +82,12 @@ Page({
   onShow() {
     this.refresh();
   },
+
+  onShareAppMessage() {
+    return share.appMessage(share.todayCount(this));
+  },
+
+  // 朋友圈不能自定义 path，从数据页发出会落到本页；故不定义 onShareTimeline，菜单不出现该项。
 
   refresh() {
     const state = merit.getState(getApp(), FREE_UNLOCKS);
